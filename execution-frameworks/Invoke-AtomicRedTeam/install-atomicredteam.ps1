@@ -1,16 +1,6 @@
-#Requires -RunAsAdministrator
-[CmdletBinding()]
-Param(
-  [Parameter(Mandatory=$False,Position=0)]
-  [string]$InstallPath = 'C:\AtomicRedTeam',
-
-  [Parameter(Mandatory=$False,Position=0)]
-  [string]$DownloadPath = 'C:\AtomicRedTeam'
-
- )
-
 function Install-AtomicRedTeam {
-<#
+  
+    <#
     .SYNOPSIS
 
         This is a simple script to download and install Atomic Red Team Invoke-AtomicRedTeam Powershell Framework.
@@ -29,102 +19,100 @@ function Install-AtomicRedTeam {
 
         Specifies the desired path for where to install Atomic Red Team.
 
+    .PARAMETER Force
+
+        Delete the existing InstallPath before installation if it exists.
+
     .EXAMPLE
 
         Install Atomic Red Team
         PS> Install-AtomicRedTeam.ps1
-
-    .EXAMPLE
-
-        Execute a single test
-        $T1117 = Get-AtomicTechnique -Path ..\..\atomics\T1117\T1117.yaml
-        Invoke-AtomicTest $T1117
-
-    .EXAMPLE
-
-        Informational Stream
-        Invoke-AtomicTest $T1117 -InformationAction Continue
-
-    .EXAMPLE
-
-        Verbose Stream
-        Invoke-AtomicTest $T1117 -Verbose
-
-    .EXAMPLE
-
-        Debug Stream
-        Invoke-AtomicTest $T1117 -Debug
-
-    .EXAMPLE
-
-        What if
-        If you would like to see what would happen without running the test
-        Invoke-AtomicTest $T1117 -WhatIf
-
-    .EXAMPLE
-
-
-        To run all tests without confirming them run using the Confirm switch to false
-
-        Invoke-AtomicTest $T1117 -Confirm:$false
-        Or you can set your $ConfirmPreference to 'Medium'
-
-        $ConfirmPreference = 'Medium'
-        Invoke-AtomicTest $T1117
-
-    .EXAMPLE
-
-      Invoke-AllAtomicTests -GenerateOnly
 
     .NOTES
 
     Use the '-Verbose' option to print detailed information.
 
 #>
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $False, Position = 0)]
+        [string]$InstallPath = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam" } else { $env:HOMEDRIVE + "\AtomicRedTeam" }),
 
+        [Parameter(Mandatory = $False, Position = 1)]
+        [string]$DownloadPath = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam" } else { $env:HOMEDRIVE + "\AtomicRedTeam" }),
 
-write-verbose "Directory Creation"
+        [Parameter(Mandatory = $False)]
+        [switch]$Force = $False # delete the existing install directory and reinstall
+    )
 
-if(!(Test-Path -Path $InstallPath )){
-    New-Item -ItemType directory -Path $InstallPath
-	write-verbose "Setting Execution Policy to Unrestricted"
-	set-executionpolicy Unrestricted
+    Write-Verbose "Checking if we are Admin"
+    $isElevated = $false
+    if ($IsLinux -or $IsMacOS) {
+        $privid = id -u                
+        if ($privid -eq 0) {
+            $isElevated = $true
+        }
+    }
+    else {
+        $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    }
+    if (-not $isElevated) { Write-Error "This script must be run as an administrator."; return }
 
-	write-verbose "Setting variables for remote URL and download Path"
-	$url = "https://github.com/redcanaryco/atomic-red-team/archive/master.zip"
-	$path = "$DownloadPath\master.zip"
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-	$webClient = new-object System.Net.WebClient
-	write-verbose "Beginning download from Github"
-	$webClient.DownloadFile( $url, $path )
+    $modulePath = Join-Path "$InstallPath" "execution-frameworks\Invoke-AtomicRedTeam\Invoke-AtomicRedTeam\Invoke-AtomicRedTeam.psm1"
+    if ($Force -or -Not (Test-Path -Path $InstallPath )) {
+        write-verbose "Directory Creation"
+        if ($Force) {
+            Try { 
+                if (Test-Path $InstallPath){ Remove-Item -Path $InstallPath -Recurse -Force -ErrorAction Stop | Out-Null }
+            }
+            Catch {
+                Write-Host -ForegroundColor Red $_.Exception.Message
+                return
+            }
+        }
+        New-Item -ItemType directory -Path $InstallPath | Out-Null
 
-	write-verbose "Extracting ART to C:\AtomicRedTeam\"
-	expand-archive -LiteralPath "$DownloadPath\master.zip" -DestinationPath "$InstallPath"
+        if ($IsWindows -or $null -eq $IsWindows) {
+            write-verbose "Setting Execution Policy to Unrestricted"
+            set-executionpolicy Unrestricted
+        }
 
-	write-verbose "Installing NuGet PackageProvider"
-	Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+        write-verbose "Setting variables for remote URL and download Path"
+        $url = "https://github.com/redcanaryco/atomic-red-team/archive/master.zip"
+        $path = Join-Path $DownloadPath "master.zip"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $webClient = new-object System.Net.WebClient
+        write-verbose "Beginning download from Github"
+        $webClient.DownloadFile( $url, $path )
 
-	write-verbose "Installing powershell-yaml"
-	Install-Module -Name powershell-yaml -Force
+        write-verbose "Extracting ART to $InstallPath"
+        $lp = Join-Path "$DownloadPath" "master.zip" 
+        expand-archive -LiteralPath $lp -DestinationPath "$InstallPath" -Force:$Force
+        $unzipPath = Join-Path $InstallPath "atomic-red-team-master"
+        Get-ChildItem $unzipPath -Force | Move-Item -dest $InstallPath
+        Remove-Item $unzipPath
 
-	write-verbose "Importing invoke-atomicRedTeam module"
-	Import-Module "$InstallPath\execution-frameworks\Invoke-AtomicRedTeam\Invoke-AtomicRedTeam\Invoke-AtomicRedTeam.psm1"
+        if (-not $IsMacOS -and -not $IsLinux) {
+            write-verbose "Installing NuGet PackageProvider"
+            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+        }
+        else {
+            chown -R $env:SUDO_USER $InstallPath
+        }
 
-	write-verbose "Changing current work directory Invoke-AtomicRedTeam"
-	cd "$InstallPath\execution-frameworks\Invoke-AtomicRedTeam\Invoke-AtomicRedTeam\"
+        write-verbose "Installing powershell-yaml"
+        Install-Module -Name powershell-yaml -Force
 
-	write-verbose "Clearing screen"
-	clear
+        write-verbose "Importing invoke-atomicRedTeam module"
+        Import-Module $modulePath -Force
 
-	Write-Host "Installation of Invoke-AtomicRedTeam is complete" -Fore Yellow
+        Write-Host "Installation of Invoke-AtomicRedTeam is complete. You can now use the Invoke-AtomicTest function" -Fore Yellow
+        Write-Host "See README at https://github.com/redcanaryco/atomic-red-team/tree/master/execution-frameworks/Invoke-AtomicRedTeam for complete details" -Fore Yellow
 
+    }
+    else {
+        Write-Host -ForegroundColor Yellow "Atomic Redteam already exists at $InstallPath. No changes were made."
+        Write-Host -ForegroundColor Cyan "Try the install again with the '-Force' parameter if you want to delete the existing installion and re-install."
+        Write-Host -ForegroundColor Red "Warning: All files within the install directory ($InstallPath) will be deleted when using the '-Force' parameter."
+    }
 }
-else
-{
-	Write-Verbose "Atomic Already exists at $InstallPath"
-	exit
-
-
-}
-}
-Install-AtomicRedTeam

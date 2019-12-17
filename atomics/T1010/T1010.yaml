@@ -14,7 +14,7 @@ atomic_tests:
     input_source_code:
       description: Path to source of C# code
       type: path
-      default: C:\AtomicRedTeam\atomics\T1010\src\T1010.cs
+      default: PathToAtomicsFolder\T1010\src\T1010.cs
     output_file_name:
       description: Name of output binary
       type: string
@@ -22,6 +22,7 @@ atomic_tests:
 
   executor:
     name: command_prompt
+    elevation_required: false
     command: |
       C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe -out:#{output_file_name} #{input_source_code}
       #{output_file_name}

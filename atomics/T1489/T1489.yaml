@@ -18,8 +18,11 @@ atomic_tests:
 
   executor:
     name: command_prompt
+    elevation_required: true
     command: |
       sc.exe stop #{service_name}
+    cleanup_command: |
+      sc.exe start #{service_name}
 
 - name: Windows - Stop service using net.exe
   description: |
@@ -36,8 +39,11 @@ atomic_tests:
 
   executor:
     name: command_prompt
+    elevation_required: true
     command: |
       net.exe stop #{service_name}
+    cleanup_command: |
+      net.exe start #{service_name}
 
 - name: Windows - Stop service by killing process
   description: |
@@ -51,9 +57,10 @@ atomic_tests:
     process_name:
       description: Name of a process to kill
       type: String
-      default: sqlwriter.exe
+      default: spoolsv.exe
 
   executor:
     name: command_prompt
+    elevation_required: false
     command: |
       taskkill.exe /f /im #{process_name}

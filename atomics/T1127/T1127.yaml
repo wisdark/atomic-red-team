@@ -11,8 +11,9 @@ atomic_tests:
     filename:
       description: Location of the project file
       type: Path
-      default: T1127.csproj
+      default: PathToAtomicsFolder\T1127\T1127.csproj
   executor:
     name: command_prompt
+    elevation_required: false
     command: |
      C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe #{filename}
