@@ -58,6 +58,8 @@ defense-evasion,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,2
 defense-evasion,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,3,Set a SetGID flag on file,db55f666-7cba-46c6-9fe6-205a05c3242c,sh
 defense-evasion,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,4,Make and modify capabilities of a binary,db53959c-207d-4000-9e7a-cd8eb417e072,sh
 defense-evasion,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,5,Provide the SetUID capability to a file,1ac3272f-9bcf-443a-9888-4b1d3de785c1,sh
+defense-evasion,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,6,Do reconnaissance for files that have the setuid bit set,8e36da01-cd29-45fd-be72-8a0fcaad4481,sh
+defense-evasion,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,7,Do reconnaissance for files that have the setgid bit set,3fb46e17-f337-4c14-9f9a-a471946533e2,sh
 defense-evasion,T1562.006,Impair Defenses: Indicator Blocking,1,Auditing Configuration Changes on Linux Host,212cfbcf-4770-4980-bc21-303e37abd0e3,bash
 defense-evasion,T1562.006,Impair Defenses: Indicator Blocking,2,Logging Configuration Changes on Linux Host,7d40bc58-94c7-4fbb-88d9-ebce9fcdb60c,bash
 defense-evasion,T1562.003,Impair Defenses: HISTCONTROL,1,Disable history collection,4eafdb45-0f79-4d66-aa86-a3e2c08791f5,sh
@@ -66,6 +68,11 @@ defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,1,Disable sys
 defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,2,Disable Cb Response,ae8943f7-0f8d-44de-962d-fbc2e2f03eb8,sh
 defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,3,Disable SELinux,fc225f36-9279-4c39-b3f9-5141ab74f8d8,sh
 defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,4,Stop Crowdstrike Falcon on Linux,828a1278-81cc-4802-96ab-188bf29ca77d,sh
+defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,39,Clear History,23b88394-091b-4968-a42d-fb8076992443,sh
+defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,40,Suspend History,94f6a1c9-aae7-46a4-9083-2bb1f5768ec4,sh
+defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,41,Reboot Linux Host via Kernel System Request,6d6d3154-1a52-4d1a-9d51-92ab8148b32e,sh
+defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,42,Clear Pagging Cache,f790927b-ea85-4a16-b7b2-7eb44176a510,sh
+defense-evasion,T1562.001,Impair Defenses: Disable or Modify Tools,43,Disable Memory Swap,e74e4c63-6fde-4ad2-9ee8-21c3a1733114,sh
 defense-evasion,T1027,Obfuscated Files or Information,1,Decode base64 Data into Script,f45df6be-2e1e-4136-a384-8f18ab3826fb,sh
 defense-evasion,T1036.003,Masquerading: Rename System Utilities,2,Masquerading as Linux crond process.,a315bfff-7a98-403b-b442-2ea1b255e556,sh
 defense-evasion,T1553.004,Subvert Trust Controls: Install Root Certificate,1,Install root CA on CentOS/RHEL,9c096ec4-fd42-419d-a762-d64cc950627e,sh
@@ -106,7 +113,8 @@ persistence,T1053.003,Scheduled Task/Job: Cron,3,Cron - Add script to /var/spool
 persistence,T1176,Browser Extensions,1,Chrome (Developer Mode),3ecd790d-2617-4abf-9a8c-4e8d47da9ee1,manual
 persistence,T1176,Browser Extensions,2,Chrome (Chrome Web Store),4c83940d-8ca5-4bb2-8100-f46dc914bc3f,manual
 persistence,T1176,Browser Extensions,3,Firefox,cb790029-17e6-4c43-b96f-002ce5f10938,manual
-persistence,T1546.005,Event Triggered Execution: Trap,1,Trap,a74b2e07-5952-4c03-8b56-56274b076b61,sh
+persistence,T1546.005,Event Triggered Execution: Trap,1,Trap EXIT,a74b2e07-5952-4c03-8b56-56274b076b61,sh
+persistence,T1546.005,Event Triggered Execution: Trap,2,Trap SIGINT,a547d1ba-1d7a-4cc5-a9cb-8d65e8809636,sh
 persistence,T1574.006,Hijack Execution Flow: LD_PRELOAD,1,Shared Library Injection via /etc/ld.so.preload,39cb0e67-dd0d-4b74-a74b-c072db7ae991,bash
 persistence,T1574.006,Hijack Execution Flow: LD_PRELOAD,2,Shared Library Injection via LD_PRELOAD,bc219ff7-789f-4d51-9142-ecae3397deae,bash
 persistence,T1136.001,Create Account: Local Account,1,Create a user account on a Linux system,40d8eabd-e394-46f6-8785-b9bfa1d011d2,bash
@@ -118,6 +126,9 @@ persistence,T1053.006,Scheduled Task/Job: Systemd Timers,2,Create a user level t
 persistence,T1053.006,Scheduled Task/Job: Systemd Timers,3,Create a system level transient systemd service and timer,d3eda496-1fc0-49e9-aff5-3bec5da9fa22,sh
 persistence,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,1,Add command to .bash_profile,94500ae1-7e31-47e3-886b-c328da46872f,sh
 persistence,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,2,Add command to .bashrc,0a898315-4cfa-4007-bafe-33a4646d115f,sh
+persistence,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,3,Append to the system shell profile,694b3cc8-6a78-4d35-9e74-0123d009e94b,sh
+persistence,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,4,Append commands user shell profile,bbdb06bc-bab6-4f5b-8232-ba3fbed51d77,sh
+persistence,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,5,System shell profile scripts,8fe2ccfd-f079-4c03-b1a9-bd9b362b67d4,sh
 persistence,T1037.004,Boot or Logon Initialization Scripts: Rc.common,2,rc.common,c33f3d80-5f04-419b-a13a-854d1cbdbf3a,bash
 persistence,T1037.004,Boot or Logon Initialization Scripts: Rc.common,3,rc.local,126f71af-e1c9-405c-94ef-26a47b16c102,bash
 persistence,T1543.002,Create or Modify System Process: Systemd Service,1,Create Systemd Service,d9e4f24f-aa67-4c6e-bcbf-85622b697a7c,bash
@@ -129,7 +140,8 @@ privilege-escalation,T1548.003,Abuse Elevation Control Mechanism: Sudo and Sudo 
 privilege-escalation,T1053.003,Scheduled Task/Job: Cron,1,Cron - Replace crontab with referenced file,435057fb-74b1-410e-9403-d81baf194f75,bash
 privilege-escalation,T1053.003,Scheduled Task/Job: Cron,2,Cron - Add script to all cron subfolders,b7d42afa-9086-4c8a-b7b0-8ea3faa6ebb0,bash
 privilege-escalation,T1053.003,Scheduled Task/Job: Cron,3,Cron - Add script to /var/spool/cron/crontabs/ folder,2d943c18-e74a-44bf-936f-25ade6cccab4,bash
-privilege-escalation,T1546.005,Event Triggered Execution: Trap,1,Trap,a74b2e07-5952-4c03-8b56-56274b076b61,sh
+privilege-escalation,T1546.005,Event Triggered Execution: Trap,1,Trap EXIT,a74b2e07-5952-4c03-8b56-56274b076b61,sh
+privilege-escalation,T1546.005,Event Triggered Execution: Trap,2,Trap SIGINT,a547d1ba-1d7a-4cc5-a9cb-8d65e8809636,sh
 privilege-escalation,T1574.006,Hijack Execution Flow: LD_PRELOAD,1,Shared Library Injection via /etc/ld.so.preload,39cb0e67-dd0d-4b74-a74b-c072db7ae991,bash
 privilege-escalation,T1574.006,Hijack Execution Flow: LD_PRELOAD,2,Shared Library Injection via LD_PRELOAD,bc219ff7-789f-4d51-9142-ecae3397deae,bash
 privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,1,Make and modify binary from C source,896dfe97-ae43-4101-8e96-9a7996555d80,sh
@@ -137,12 +149,17 @@ privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Set
 privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,3,Set a SetGID flag on file,db55f666-7cba-46c6-9fe6-205a05c3242c,sh
 privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,4,Make and modify capabilities of a binary,db53959c-207d-4000-9e7a-cd8eb417e072,sh
 privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,5,Provide the SetUID capability to a file,1ac3272f-9bcf-443a-9888-4b1d3de785c1,sh
+privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,6,Do reconnaissance for files that have the setuid bit set,8e36da01-cd29-45fd-be72-8a0fcaad4481,sh
+privilege-escalation,T1548.001,Abuse Elevation Control Mechanism: Setuid and Setgid,7,Do reconnaissance for files that have the setgid bit set,3fb46e17-f337-4c14-9f9a-a471946533e2,sh
 privilege-escalation,T1547.006,Boot or Logon Autostart Execution: Kernel Modules and Extensions,1,Linux - Load Kernel Module via insmod,687dcb93-9656-4853-9c36-9977315e9d23,bash
 privilege-escalation,T1053.006,Scheduled Task/Job: Systemd Timers,1,Create Systemd Service and Timer,f4983098-bb13-44fb-9b2c-46149961807b,bash
 privilege-escalation,T1053.006,Scheduled Task/Job: Systemd Timers,2,Create a user level transient systemd service and timer,3de33f5b-62e5-4e63-a2a0-6fd8808c80ec,sh
 privilege-escalation,T1053.006,Scheduled Task/Job: Systemd Timers,3,Create a system level transient systemd service and timer,d3eda496-1fc0-49e9-aff5-3bec5da9fa22,sh
 privilege-escalation,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,1,Add command to .bash_profile,94500ae1-7e31-47e3-886b-c328da46872f,sh
 privilege-escalation,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,2,Add command to .bashrc,0a898315-4cfa-4007-bafe-33a4646d115f,sh
+privilege-escalation,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,3,Append to the system shell profile,694b3cc8-6a78-4d35-9e74-0123d009e94b,sh
+privilege-escalation,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,4,Append commands user shell profile,bbdb06bc-bab6-4f5b-8232-ba3fbed51d77,sh
+privilege-escalation,T1546.004,Event Triggered Execution: .bash_profile and .bashrc,5,System shell profile scripts,8fe2ccfd-f079-4c03-b1a9-bd9b362b67d4,sh
 privilege-escalation,T1037.004,Boot or Logon Initialization Scripts: Rc.common,2,rc.common,c33f3d80-5f04-419b-a13a-854d1cbdbf3a,bash
 privilege-escalation,T1037.004,Boot or Logon Initialization Scripts: Rc.common,3,rc.local,126f71af-e1c9-405c-94ef-26a47b16c102,bash
 privilege-escalation,T1543.002,Create or Modify System Process: Systemd Service,1,Create Systemd Service,d9e4f24f-aa67-4c6e-bcbf-85622b697a7c,bash
@@ -160,7 +177,11 @@ credential-access,T1110.001,Brute Force: Password Guessing,5,SUDO brute force Re
 credential-access,T1003.007,OS Credential Dumping: Proc Filesystem,1,Dump individual process memory with sh (Local),7e91138a-8e74-456d-a007-973d67a0bb80,sh
 credential-access,T1003.007,OS Credential Dumping: Proc Filesystem,2,Dump individual process memory with Python (Local),437b2003-a20d-4ed8-834c-4964f24eec63,sh
 credential-access,T1003.007,OS Credential Dumping: Proc Filesystem,3,Capture Passwords with MimiPenguin,a27418de-bdce-4ebd-b655-38f04842bf0c,bash
-credential-access,T1040,Network Sniffing,1,Packet Capture Linux,7fe741f7-b265-4951-a7c7-320889083b3e,bash
+credential-access,T1040,Network Sniffing,1,Packet Capture Linux using tshark or tcpdump,7fe741f7-b265-4951-a7c7-320889083b3e,bash
+credential-access,T1040,Network Sniffing,9,"Packet Capture Linux socket AF_PACKET,SOCK_RAW with sudo",10c710c9-9104-4d5f-8829-5b65391e2a29,bash
+credential-access,T1040,Network Sniffing,10,"Packet Capture Linux socket AF_INET,SOCK_RAW,TCP with sudo",7a0895f0-84c1-4adf-8491-a21510b1d4c1,bash
+credential-access,T1040,Network Sniffing,11,"Packet Capture Linux socket AF_INET,SOCK_PACKET,UDP with sudo",515575ab-d213-42b1-aa64-ef6a2dd4641b,bash
+credential-access,T1040,Network Sniffing,12,"Packet Capture Linux socket AF_PACKET,SOCK_RAW with BPF filter for UDP with sudo",b1cbdf8b-6078-48f5-a890-11ea19d7f8e9,bash
 credential-access,T1552,Unsecured Credentials,1,AWS - Retrieve EC2 Password Data using stratus,a21118de-b11e-4ebd-b655-42f11142df0c,sh
 credential-access,T1555.003,Credentials from Password Stores: Credentials from Web Browsers,9,LaZagne.py - Dump Credentials from Firefox Browser,87e88698-621b-4c45-8a89-4eaebdeaabb1,sh
 credential-access,T1552.004,Unsecured Credentials: Private Keys,2,Discover Private SSH Keys,46959285-906d-40fa-9437-5a439accd878,sh
@@ -184,7 +205,11 @@ discovery,T1087.001,Account Discovery: Local Account,5,Show if a user account ha
 discovery,T1087.001,Account Discovery: Local Account,6,Enumerate users and groups,e6f36545-dc1e-47f0-9f48-7f730f54a02e,sh
 discovery,T1497.001,Virtualization/Sandbox Evasion: System Checks,1,Detect Virtualization Environment (Linux),dfbd1a21-540d-4574-9731-e852bd6fe840,sh
 discovery,T1007,System Service Discovery,3,System Service Discovery - systemctl,f4b26bce-4c2c-46c0-bcc5-fce062d38bef,bash
-discovery,T1040,Network Sniffing,1,Packet Capture Linux,7fe741f7-b265-4951-a7c7-320889083b3e,bash
+discovery,T1040,Network Sniffing,1,Packet Capture Linux using tshark or tcpdump,7fe741f7-b265-4951-a7c7-320889083b3e,bash
+discovery,T1040,Network Sniffing,9,"Packet Capture Linux socket AF_PACKET,SOCK_RAW with sudo",10c710c9-9104-4d5f-8829-5b65391e2a29,bash
+discovery,T1040,Network Sniffing,10,"Packet Capture Linux socket AF_INET,SOCK_RAW,TCP with sudo",7a0895f0-84c1-4adf-8491-a21510b1d4c1,bash
+discovery,T1040,Network Sniffing,11,"Packet Capture Linux socket AF_INET,SOCK_PACKET,UDP with sudo",515575ab-d213-42b1-aa64-ef6a2dd4641b,bash
+discovery,T1040,Network Sniffing,12,"Packet Capture Linux socket AF_PACKET,SOCK_RAW with BPF filter for UDP with sudo",b1cbdf8b-6078-48f5-a890-11ea19d7f8e9,bash
 discovery,T1135,Network Share Discovery,2,Network Share Discovery - linux,875805bc-9e86-4e87-be86-3a5527315cae,bash
 discovery,T1082,System Information Discovery,3,List OS Information,cccb070c-df86-4216-a5bc-9fb60c74e27c,sh
 discovery,T1082,System Information Discovery,4,Linux VM Check via Hardware,31dad7ad-2286-4c02-ae92-274418c85fec,bash
@@ -203,6 +228,10 @@ discovery,T1201,Password Policy Discovery,1,Examine password complexity policy -
 discovery,T1201,Password Policy Discovery,2,Examine password complexity policy - CentOS/RHEL 7.x,78a12e65-efff-4617-bc01-88f17d71315d,bash
 discovery,T1201,Password Policy Discovery,3,Examine password complexity policy - CentOS/RHEL 6.x,6ce12552-0adb-4f56-89ff-95ce268f6358,bash
 discovery,T1201,Password Policy Discovery,4,Examine password expiration policy - All Linux,7c86c55c-70fa-4a05-83c9-3aa19b145d1a,bash
+discovery,T1614.001,System Location Discovery: System Language Discovery,3,Discover System Language with locale,837d609b-845e-4519-90ce-edc3b4b0e138,sh
+discovery,T1614.001,System Location Discovery: System Language Discovery,4,Discover System Language with localectl,07ce871a-b3c3-44a3-97fa-a20118fdc7c9,sh
+discovery,T1614.001,System Location Discovery: System Language Discovery,5,Discover System Language by locale file,5d7057c9-2c8a-4026-91dd-13b5584daa69,sh
+discovery,T1614.001,System Location Discovery: System Language Discovery,6,Discover System Language by Environment Variable Query,cb8f7cdc-36c4-4ed0-befc-7ad7d24dfd7a,sh
 discovery,T1518.001,Software Discovery: Security Software Discovery,4,Security Software Discovery - ps (Linux),23b91cd2-c99c-4002-9e41-317c63e024a2,sh
 discovery,T1018,Remote System Discovery,6,Remote System Discovery - arp nix,acb6b1ff-e2ad-4d64-806c-6c35fe73b951,sh
 discovery,T1018,Remote System Discovery,7,Remote System Discovery - sweep,96db2632-8417-4dbb-b8bb-a8b92ba391de,sh
@@ -247,6 +276,13 @@ execution,T1059.004,Command and Scripting Interpreter: Bash,1,Create and Execute
 execution,T1059.004,Command and Scripting Interpreter: Bash,2,Command-Line Interface,d0c88567-803d-4dca-99b4-7ce65e7b257c,sh
 execution,T1059.004,Command and Scripting Interpreter: Bash,3,Harvest SUID executable files,46274fc6-08a7-4956-861b-24cbbaa0503c,sh
 execution,T1059.004,Command and Scripting Interpreter: Bash,4,LinEnum tool execution,a2b35a63-9df1-4806-9a4d-5fe0500845f2,sh
+execution,T1059.004,Command and Scripting Interpreter: Bash,5,New script file in the tmp directory,8cd1947b-4a54-41fb-b5ea-07d0ace04f81,sh
+execution,T1059.004,Command and Scripting Interpreter: Bash,6,What shell is running,7b38e5cc-47be-44f0-a425-390305c76c17,sh
+execution,T1059.004,Command and Scripting Interpreter: Bash,7,What shells are available,bf23c7dc-1004-4949-8262-4c1d1ef87702,sh
+execution,T1059.004,Command and Scripting Interpreter: Bash,8,Command line scripts,b04ed73c-7d43-4dc8-b563-a2fc595cba1a,sh
+execution,T1059.004,Command and Scripting Interpreter: Bash,9,Obfuscated command line scripts,5bec4cc8-f41e-437b-b417-33ff60acf9af,sh
+execution,T1059.004,Command and Scripting Interpreter: Bash,10,Change login shell,c7ac59cb-13cc-4622-81dc-6d2fee9bfac7,bash
+execution,T1059.004,Command and Scripting Interpreter: Bash,11,Environment variable scripts,bdaebd56-368b-4970-a523-f905ff4a8a51,bash
 execution,T1059.006,Command and Scripting Interpreter: Python,1,Execute shell script via python's command mode arguement,3a95cdb2-c6ea-4761-b24e-02b71889b8bb,sh
 execution,T1059.006,Command and Scripting Interpreter: Python,2,Execute Python via scripts (Linux),6c4d1dcb-33c7-4c36-a8df-c6cfd0408be8,sh
 execution,T1059.006,Command and Scripting Interpreter: Python,3,Execute Python via Python executables (Linux),0b44d79b-570a-4b27-a31f-3bf2156e5eaa,sh
@@ -258,3 +294,4 @@ exfiltration,T1048,Exfiltration Over Alternative Protocol,2,Exfiltration Over Al
 exfiltration,T1030,Data Transfer Size Limits,1,Data Transfer Size Limits,ab936c51-10f4-46ce-9144-e02137b2016a,sh
 exfiltration,T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,1,Exfiltration Over Alternative Protocol - HTTP,1d1abbd6-a3d3-4b2e-bef5-c59293f46eff,manual
 exfiltration,T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,3,Exfiltration Over Alternative Protocol - DNS,c403b5a4-b5fc-49f2-b181-d1c80d27db45,manual
+exfiltration,T1048.003,Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol,8,Python3 http.server,3ea1f938-f80a-4305-9aa8-431bc4867313,sh

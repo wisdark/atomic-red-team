@@ -92,6 +92,8 @@
   - Atomic Test #3: Set a SetGID flag on file [macos, linux]
   - Atomic Test #4: Make and modify capabilities of a binary [linux]
   - Atomic Test #5: Provide the SetUID capability to a file [linux]
+  - Atomic Test #6: Do reconnaissance for files that have the setuid bit set [linux]
+  - Atomic Test #7: Do reconnaissance for files that have the setgid bit set [linux]
 - T1108 Redundant Access [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1562.006 Impair Defenses: Indicator Blocking](../../T1562.006/T1562.006.md)
   - Atomic Test #1: Auditing Configuration Changes on Linux Host [linux]
@@ -117,6 +119,11 @@
   - Atomic Test #2: Disable Cb Response [linux]
   - Atomic Test #3: Disable SELinux [linux]
   - Atomic Test #4: Stop Crowdstrike Falcon on Linux [linux]
+  - Atomic Test #39: Clear History [linux]
+  - Atomic Test #40: Suspend History [linux]
+  - Atomic Test #41: Reboot Linux Host via Kernel System Request [linux]
+  - Atomic Test #42: Clear Pagging Cache [linux]
+  - Atomic Test #43: Disable Memory Swap [linux]
 - T1574 Hijack Execution Flow [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1027.005 Indicator Removal from Tools [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1078 Valid Accounts [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -200,7 +207,7 @@
 - T1557.003 DHCP Spoofing [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1056.003 Web Portal Capture [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1125 Video Capture [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
-- T1114.003 Email Forwarding Rule [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
+- T1114.003 Email Collection: Email Forwarding Rule [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1074 Data Staged [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1056.002 Input Capture: GUI Input Capture [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1039 Data from Network Shared Drive [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -249,7 +256,8 @@
 - T1505.003 Server Software Component: Web Shell [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1078.001 Valid Accounts: Default Accounts [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1546.005 Event Triggered Execution: Trap](../../T1546.005/T1546.005.md)
-  - Atomic Test #1: Trap [macos, linux]
+  - Atomic Test #1: Trap EXIT [macos, linux]
+  - Atomic Test #2: Trap SIGINT [macos, linux]
 - [T1574.006 Hijack Execution Flow: LD_PRELOAD](../../T1574.006/T1574.006.md)
   - Atomic Test #1: Shared Library Injection via /etc/ld.so.preload [linux]
   - Atomic Test #2: Shared Library Injection via LD_PRELOAD [linux]
@@ -280,6 +288,9 @@
 - [T1546.004 Event Triggered Execution: .bash_profile and .bashrc](../../T1546.004/T1546.004.md)
   - Atomic Test #1: Add command to .bash_profile [macos, linux]
   - Atomic Test #2: Add command to .bashrc [macos, linux]
+  - Atomic Test #3: Append to the system shell profile [linux]
+  - Atomic Test #4: Append commands user shell profile [linux]
+  - Atomic Test #5: System shell profile scripts [linux]
 - T1168 Local Job Scheduling [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1166 Setuid and Setgid [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1100 Web Shell [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -319,7 +330,8 @@
 - T1611 Escape to Host [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1078.001 Valid Accounts: Default Accounts [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1546.005 Event Triggered Execution: Trap](../../T1546.005/T1546.005.md)
-  - Atomic Test #1: Trap [macos, linux]
+  - Atomic Test #1: Trap EXIT [macos, linux]
+  - Atomic Test #2: Trap SIGINT [macos, linux]
 - [T1574.006 Hijack Execution Flow: LD_PRELOAD](../../T1574.006/T1574.006.md)
   - Atomic Test #1: Shared Library Injection via /etc/ld.so.preload [linux]
   - Atomic Test #2: Shared Library Injection via LD_PRELOAD [linux]
@@ -331,6 +343,8 @@
   - Atomic Test #3: Set a SetGID flag on file [macos, linux]
   - Atomic Test #4: Make and modify capabilities of a binary [linux]
   - Atomic Test #5: Provide the SetUID capability to a file [linux]
+  - Atomic Test #6: Do reconnaissance for files that have the setuid bit set [linux]
+  - Atomic Test #7: Do reconnaissance for files that have the setgid bit set [linux]
 - T1055.014 VDSO Hijacking [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1169 Sudo [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1547.006 Boot or Logon Autostart Execution: Kernel Modules and Extensions](../../T1547.006/T1547.006.md)
@@ -346,6 +360,9 @@
 - [T1546.004 Event Triggered Execution: .bash_profile and .bashrc](../../T1546.004/T1546.004.md)
   - Atomic Test #1: Add command to .bash_profile [macos, linux]
   - Atomic Test #2: Add command to .bashrc [macos, linux]
+  - Atomic Test #3: Append to the system shell profile [linux]
+  - Atomic Test #4: Append commands user shell profile [linux]
+  - Atomic Test #5: System shell profile scripts [linux]
 - T1166 Setuid and Setgid [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1100 Web Shell [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1078.002 Domain Accounts [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -386,7 +403,11 @@
   - Atomic Test #3: Capture Passwords with MimiPenguin [linux]
 - T1555.005 Password Managers [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1040 Network Sniffing](../../T1040/T1040.md)
-  - Atomic Test #1: Packet Capture Linux [linux]
+  - Atomic Test #1: Packet Capture Linux using tshark or tcpdump [linux]
+  - Atomic Test #9: Packet Capture Linux socket AF_PACKET,SOCK_RAW with sudo [linux]
+  - Atomic Test #10: Packet Capture Linux socket AF_INET,SOCK_RAW,TCP with sudo [linux]
+  - Atomic Test #11: Packet Capture Linux socket AF_INET,SOCK_PACKET,UDP with sudo [linux]
+  - Atomic Test #12: Packet Capture Linux socket AF_PACKET,SOCK_RAW with BPF filter for UDP with sudo [linux]
 - T1558 Steal or Forge Kerberos Tickets [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1555 Credentials from Password Stores [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1552 Unsecured Credentials](../../T1552/T1552.md)
@@ -447,7 +468,11 @@
 - [T1007 System Service Discovery](../../T1007/T1007.md)
   - Atomic Test #3: System Service Discovery - systemctl [linux]
 - [T1040 Network Sniffing](../../T1040/T1040.md)
-  - Atomic Test #1: Packet Capture Linux [linux]
+  - Atomic Test #1: Packet Capture Linux using tshark or tcpdump [linux]
+  - Atomic Test #9: Packet Capture Linux socket AF_PACKET,SOCK_RAW with sudo [linux]
+  - Atomic Test #10: Packet Capture Linux socket AF_INET,SOCK_RAW,TCP with sudo [linux]
+  - Atomic Test #11: Packet Capture Linux socket AF_INET,SOCK_PACKET,UDP with sudo [linux]
+  - Atomic Test #12: Packet Capture Linux socket AF_PACKET,SOCK_RAW with BPF filter for UDP with sudo [linux]
 - [T1135 Network Share Discovery](../../T1135/T1135.md)
   - Atomic Test #2: Network Share Discovery - linux [linux]
 - T1120 Peripheral Device Discovery [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -481,7 +506,11 @@
   - Atomic Test #2: Examine password complexity policy - CentOS/RHEL 7.x [linux]
   - Atomic Test #3: Examine password complexity policy - CentOS/RHEL 6.x [linux]
   - Atomic Test #4: Examine password expiration policy - All Linux [linux]
-- T1614.001 System Location Discovery: System Language Discovery [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
+- [T1614.001 System Location Discovery: System Language Discovery](../../T1614.001/T1614.001.md)
+  - Atomic Test #3: Discover System Language with locale [linux]
+  - Atomic Test #4: Discover System Language with localectl [linux]
+  - Atomic Test #5: Discover System Language by locale file [linux]
+  - Atomic Test #6: Discover System Language by Environment Variable Query [linux]
 - T1614 System Location Discovery [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1518.001 Software Discovery: Security Software Discovery](../../T1518.001/T1518.001.md)
   - Atomic Test #4: Security Software Discovery - ps (Linux) [linux]
@@ -607,7 +636,7 @@
   - Atomic Test #9: Reboot System via `poweroff` - Linux [linux]
 
 # execution
-- T1059.007 JavaScript [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
+- T1059.007 Command and Scripting Interpreter: JavaScript [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1204.002 User Execution: Malicious File [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1053.003 Scheduled Task/Job: Cron](../../T1053.003/T1053.003.md)
   - Atomic Test #1: Cron - Replace crontab with referenced file [macos, linux]
@@ -631,6 +660,13 @@
   - Atomic Test #2: Command-Line Interface [macos, linux]
   - Atomic Test #3: Harvest SUID executable files [linux]
   - Atomic Test #4: LinEnum tool execution [linux]
+  - Atomic Test #5: New script file in the tmp directory [linux]
+  - Atomic Test #6: What shell is running [linux]
+  - Atomic Test #7: What shells are available [linux]
+  - Atomic Test #8: Command line scripts [linux]
+  - Atomic Test #9: Obfuscated command line scripts [linux]
+  - Atomic Test #10: Change login shell [linux]
+  - Atomic Test #11: Environment variable scripts [linux]
 - T1559 Inter-Process Communication [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1154 Trap [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1203 Exploitation for Client Execution [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -685,7 +721,7 @@
   - Atomic Test #2: Exfiltration Over Alternative Protocol - SSH [macos, linux]
 - T1052.001 Exfiltration over USB [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - T1002 Data Compressed [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
-- T1567.002 Exfiltration to Cloud Storage [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
+- T1567.002 Exfiltration Over Web Service: Exfiltration to Cloud Storage [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
 - [T1030 Data Transfer Size Limits](../../T1030/T1030.md)
   - Atomic Test #1: Data Transfer Size Limits [macos, linux]
 - T1022 Data Encrypted [CONTRIBUTE A TEST](https://github.com/redcanaryco/atomic-red-team/wiki/Contributing)
@@ -693,4 +729,5 @@
 - [T1048.003 Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol](../../T1048.003/T1048.003.md)
   - Atomic Test #1: Exfiltration Over Alternative Protocol - HTTP [macos, linux]
   - Atomic Test #3: Exfiltration Over Alternative Protocol - DNS [linux]
+  - Atomic Test #8: Python3 http.server [linux]
 
