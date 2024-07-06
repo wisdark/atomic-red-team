@@ -37,6 +37,24 @@ atomic_tests:
       sed -i '$ d' /etc/#{libaudit_config_file_name}
     name: bash
     elevation_required: true
+- name: 'Auditing Configuration Changes on FreeBSD Host'
+  auto_generated_guid: cedaf7e7-28ee-42ab-ba13-456abd35d1bd
+  description: |
+    Emulates modification of auditd configuration files
+  supported_platforms:
+  - linux
+  input_arguments:
+    auditd_config_file_name:
+      description: The name of the auditd configuration file to be changed
+      type: string
+      default: audit_event
+  executor:
+    command: |
+      echo '#art_test_1562_006_1' >> /etc/security/#{auditd_config_file_name}
+    cleanup_command: |
+      sed -i "" '/#art_test_1562_006_1/d' /etc/security/#{auditd_config_file_name}
+    name: sh
+    elevation_required: true
 - name: 'Logging Configuration Changes on Linux Host'
   auto_generated_guid: 7d40bc58-94c7-4fbb-88d9-ebce9fcdb60c
   description: |
@@ -79,6 +97,29 @@ atomic_tests:
       fi
     name: bash
     elevation_required: true
+- name: 'Logging Configuration Changes on FreeBSD Host'
+  auto_generated_guid: 6b8ca3ab-5980-4321-80c3-bcd77c8daed8
+  description: |
+    Emulates modification of syslog configuration.
+  supported_platforms:
+  - linux
+  input_arguments:
+    syslog_config_file_name:
+      description: The name of the syslog configuration file to be changed
+      type: string
+      default: syslog.conf
+  executor:
+    command: |
+      if [ -f "/etc/#{syslog_config_file_name}" ];
+      then echo '#art_test_1562_006_2' >> /etc/#{syslog_config_file_name}
+      fi
+    cleanup_command: |
+      if [ -f "/etc/#{syslog_config_file_name}" ];
+      then sed -i "" '/#art_test_1562_006_2/d' /etc/#{syslog_config_file_name}
+      fi
+    name: sh
+    elevation_required: true
+
 - name: Disable Powershell ETW Provider - Windows
   auto_generated_guid: 6f118276-121d-4c09-bb58-a8fb4a72ee84
   description: This test was created to disable the Microsoft Powershell ETW provider by using the built-in Windows tool, logman.exe. This provider is used as a common source of telemetry in AV/EDR solutions.
@@ -88,7 +129,7 @@ atomic_tests:
     ps_exec_location:
       description: Location of PSExec.
       type: string
-      default: $env:temp\pstools\PsExec.exe
+      default: PathToAtomicsFolder\..\ExternalPayloads\pstools\PsExec.exe
     session:
       description: The session to disable.
       type: string
@@ -102,8 +143,9 @@ atomic_tests:
   - description: PSExec must be installed on the machine.
     prereq_command: if (Test-Path "#{ps_exec_location}") {exit 0} else {exit 1}
     get_prereq_command: |-
-      start-bitstransfer -source "https://download.sysinternals.com/files/PSTools.zip" -destination "$env:temp\PStools.zip"
-      expand-archive -literalpath "$env:temp\PStools.zip" -destinationpath "$env:temp\pstools" -force
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      Invoke-WebRequest "https://download.sysinternals.com/files/PSTools.zip" -OutFile "PathToAtomicsFolder\..\ExternalPayloads\PStools.zip"
+      expand-archive -literalpath "PathToAtomicsFolder\..\ExternalPayloads\PStools.zip" -destinationpath "PathToAtomicsFolder\..\ExternalPayloads\pstools" -force
   executor:
     command: cmd /c "#{ps_exec_location}" -accepteula -i -s cmd.exe /c logman update trace "#{session}" --p "#{provider}" -ets
     cleanup_command: cmd /c "#{ps_exec_location}" -i -s cmd.exe /c logman update trace "#{session}" -p "#{provider}" -ets
@@ -134,13 +176,14 @@ atomic_tests:
   description: |
     An adversary can disable the ETW Provider of Windows Defender,
     so nothing would be logged to Microsoft-Windows-Windows-Defender/Operational anymore.
+    https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-075a
   supported_platforms:
   - windows
   executor:
     command: |
-      reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender" /v Operational /t REG_DWORD /d 0 /f
+      reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender/Operational" /v Enabled /t REG_DWORD /d 0 /f
     cleanup_command: |
-      reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender" /v Operational /f >nul 2>&1
+      reg delete "HKLM\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender/Operational" /v Enabled /f >nul 2>&1
     name: command_prompt
     elevation_required: true
 - name: LockBit Black - Disable the ETW Provider of Windows Defender -Powershell
@@ -148,12 +191,13 @@ atomic_tests:
   description: |
     An adversary can disable the ETW Provider of Windows Defender,
     so nothing would be logged to Microsoft-Windows-Windows-Defender/Operational anymore.
+    https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-075a
   supported_platforms:
   - windows
   executor:
     command: |
-      New-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender" -Name Operational  -PropertyType DWord -Value 0 -Force
+      New-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender/Operational" -Name Enabled  -PropertyType DWord -Value 0 -Force
     cleanup_command: |
-      Remove-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender" -Name Operational -Force -ErrorAction Ignore
+      Remove-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Windows Defender/Operational" -Name Enabled -Force -ErrorAction Ignore
     name: powershell
     elevation_required: true

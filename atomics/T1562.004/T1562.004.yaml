@@ -82,7 +82,7 @@ atomic_tests:
       default: PathToAtomicsFolder\T1562.004\bin\AtomicTest.exe
   executor:
     command: |
-      Copy-Item #{exe_file_path} -Destination "C:\Users\$env:UserName" -Force
+      Copy-Item "#{exe_file_path}" -Destination "C:\Users\$env:UserName" -Force
       netsh advfirewall firewall add rule name="Atomic Test" dir=in action=allow program="C:\Users\$env:UserName\AtomicTest.exe" enable=yes
     cleanup_command: |
       netsh advfirewall firewall delete rule name="Atomic Test" | Out-Null
@@ -112,6 +112,31 @@ atomic_tests:
     cleanup_command: |
       ufw enable
       ufw status verbose
+- name: Stop/Start Packet Filter
+  auto_generated_guid: 0ca82ed1-0a94-4774-9a9a-a2c83a8022b7
+  description: |
+    Stop the Packet Filter if installed.
+  supported_platforms:
+  - linux
+  dependency_executor_name: sh
+  dependencies:
+  - description: |
+      Check if pfctl is installed on the machine.
+    prereq_command: |
+      if [ ! -x "$(command -v pfctl)" ]; then echo -e "\n***** PF NOT installed *****\n"; exit 1; fi
+      if [ "$(kldstat -n pf)" = "" ]; then echo -e "\n***** PF inactive *****\n"; exit 1; fi 
+    get_prereq_command: |
+      echo ""
+  executor:
+    name: sh
+    elevation_required: true
+    command: |
+      service pf stop
+      service pf disable
+    cleanup_command: |
+      service pf enable
+      service pf start
+      service pf status
 - name: Stop/Start UFW firewall systemctl
   auto_generated_guid: 9fd99609-1854-4f3c-b47b-97d9a5972bd1
   description: |
@@ -183,6 +208,32 @@ atomic_tests:
     cleanup_command: |
       { echo y; echo response; } | ufw delete 1
       ufw status numbered
+- name: Add and delete Packet Filter rules
+  auto_generated_guid: 8b23cae1-66c1-41c5-b79d-e095b6098b5b
+  description: |
+    Add and delete a rule on the Packet Filter (PF) if installed and enabled. 
+  supported_platforms:
+  - linux
+  dependency_executor_name: sh
+  dependencies:
+  - description: |
+      Check if pf is installed on the machine and enabled.
+    prereq_command: |
+      if [ ! -x "$(command -v pfctl)" ]; then echo -e "\n***** PF NOT installed *****\n"; exit 1; fi
+      if [ "$(kldstat -n pf)" = "" ]; then echo -e "\n***** PF inactive *****\n"; exit 1; fi 
+    get_prereq_command: |
+      echo "anchor pf-rules >> /etc/pf.conf"
+      pfctl -f /etc/pf.conf
+  executor:
+    name: sh
+    elevation_required: true
+    command: |
+      echo "block in proto tcp from 1.2.3.4 to any" | pfctl -a pf-rules -f -
+      pfctl -a pf-rules -s rules
+    cleanup_command: |
+      pfctl -a pf-rules -F rules
+      sed -i "" '/anchor pf-rules/d'
+      pfctl -f /etc/pf.conf
 - name: Edit UFW firewall user.rules file
   auto_generated_guid: beaf815a-c883-4194-97e9-fdbbb2bbdd7c
   description: |
@@ -297,6 +348,54 @@ atomic_tests:
     command: |
       tail /var/log/ufw.log
     cleanup_command: |
+- name: Disable iptables 
+  auto_generated_guid: 7784c64e-ed0b-4b65-bf63-c86db229fd56
+  description: |
+    Some Linux systems may not activate ufw, but use iptables for firewall rules instead. (ufw works on top of iptables.) 
+    Attackers cannot directly disable iptables, as it is not implemented as a service like ufw. But they can flush all iptables 
+    rules, which in fact "disable" iptables. 
+  supported_platforms:
+  - linux
+  dependency_executor_name: sh
+  dependencies:
+  - description: |
+      Check if iptables is installed on the machine.
+    prereq_command: |
+      if [ ! -x "$(command -v iptables)" ]; then echo -e "\n***** iptables NOT installed *****\n"; exit 1; fi
+    get_prereq_command: |
+      echo ""
+  executor:
+    name: sh
+    elevation_required: true
+    command: |
+      iptables-save > /tmp/iptables.rules
+      iptables -F
+    cleanup_command: | 
+      iptables-restore < /tmp/iptables.rules
+- name: Modify/delete iptables firewall rules
+  auto_generated_guid: 899a7fb5-d197-4951-8614-f19ac4a73ad4
+  description: |
+    Instead of completely "disabling" iptables, adversaries may choose to delete a certain rule, which, for example, blocks data exfiltration via ftp.
+    By doing so, they may cause less noise to avoid detection. 
+  supported_platforms:
+  - linux
+  dependency_executor_name: sh
+  dependencies:
+  - description: |
+      Check if iptables is installed on the machine.
+    prereq_command: |
+      if [ ! -x "$(command -v iptables)" ]; then echo -e "\n***** iptables NOT installed *****\n"; exit 1; fi
+      if ! echo "$(iptables -L)" | grep -q "DROP .*dpt:ftp"; then echo -e "\n***** this firewall rule is NOT activated *****\n***** activate it by executing \"iptables -A OUTPUT -p tcp --dport 21 -j DROP\" *****\n"; exit 1; fi
+    get_prereq_command: |
+      echo ""
+  executor:
+    name: sh
+    elevation_required: true
+    command: |
+      iptables-save > /tmp/iptables.rules
+      iptables -D OUTPUT -p tcp --dport 21 -j DROP
+    cleanup_command: | 
+      iptables-restore < /tmp/iptables.rules
 - name: LockBit Black - Unusual Windows firewall registry modification -cmd
   auto_generated_guid: a4651931-ebbb-4cde-9363-ddf3d66214cb
   description: |
@@ -339,4 +438,70 @@ atomic_tests:
     cleanup_command: |
       netsh firewall set opmode mode=enable >nul 2>&1
     name: command_prompt
+    elevation_required: true
+- name: ESXi - Disable Firewall via Esxcli
+  auto_generated_guid: bac8a340-be64-4491-a0cc-0985cb227f5a
+  description: |
+    Adversaries may disable the ESXI firewall via ESXCLI
+  supported_platforms:
+  - windows
+  input_arguments:
+    vm_host:
+      description: Specify the host name of the ESXi Server
+      type: string
+      default: atomic.local
+    plink_file:
+      description: Path to Putty
+      type: path
+      default: 'PathToAtomicsFolder\..\ExternalPayloads\plink.exe'
+    username:
+      description: username used to log into ESXi
+      type: string
+      default: root
+    password:
+      description: password used to log into ESXI
+      type: string
+      default: n/a
+  dependency_executor_name: powershell
+  dependencies:
+  - description: |
+      The plink executable must be found in the ExternalPayloads folder.
+    prereq_command: |
+      if (Test-Path "#{plink_file}") {exit 0} else {exit 1}
+    get_prereq_command: |
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      Invoke-WebRequest "https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe" -OutFile "#{plink_file}"
+  executor:
+    command: |
+      #{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m PathToAtomicsFolder\..\atomics\T1562.004\src\esxi_disable_firewall.txt
+    cleanup_command: |
+      #{plink_file} -ssh #{vm_host} -l #{username} -pw #{password} -m PathToAtomicsFolder\..\atomics\T1562.004\src\esxi_enable_firewall.txt
+    name: command_prompt
+    elevation_required: false
+- name: Set a firewall rule using New-NetFirewallRule
+  auto_generated_guid: 94be7646-25f6-467e-af23-585fb13000c8
+  description: This test will attempt to create a new inbound/outbound firewall rule using the New-NetFirewallRule commandlet. 
+  supported_platforms:
+  - windows
+  input_arguments:
+    direction:
+      description: Direction can be Inbound or Outbound
+      type: string
+      default: Inbound
+    local_port:
+      description: This is the local port you wish to test opening
+      type: integer
+      default: 21
+    protocol:
+      description: This is the protocol
+      type: string
+      default: TCP
+    action:
+      description: This is the action
+      type: string
+      default: allow
+  executor:
+    command: New-NetFirewallRule -DisplayName "New rule" -Direction "#{direction}" -LocalPort "#{local_port}" -Protocol "#{protocol}" -Action "#{action}"
+    cleanup_command: Remove-NetFirewallRule -DisplayName "New rule"
+    name: powershell
     elevation_required: true

